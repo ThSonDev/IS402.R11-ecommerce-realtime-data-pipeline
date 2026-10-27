@@ -4,14 +4,14 @@
 
 *                     @ThSonDev
 
-# Sơn (lead): infra, CI/CD, alerting, ops dashboard
+# Sơn (lead): infra, CI/CD, ops dashboard
 /.github/             @ThSonDev
 /infra/               @ThSonDev
-/functions/           @ThSonDev
 /dashboards/grafana/  @ThSonDev
 
-# Minh: data ingestion
+# Minh: data ingestion, alert function
 /producer/            @TunMinhh
+/functions/           @TunMinhh
 /tests/               @TunMinhh
 /scripts/             @TunMinhh @ThSonDev
 
