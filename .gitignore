@@ -12,6 +12,9 @@ data/*
 *.tfvars
 !*.tfvars.example
 
+# Temp dir
+temp/
+
 # Terraform
 .terraform/
 *.tfstate
