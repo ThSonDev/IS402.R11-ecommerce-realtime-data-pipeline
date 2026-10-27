@@ -1,0 +1,27 @@
+# Each PR touching these paths auto-requests a review from the owner.
+# The last matching pattern wins, so the catch-all goes first.
+# Owners must have write access to the repo for this to take effect.
+
+*                     @ThSonDev
+
+# Sơn (lead): infra, CI/CD, alerting, ops dashboard
+/.github/             @ThSonDev
+/infra/               @ThSonDev
+/functions/           @ThSonDev
+/dashboards/grafana/  @ThSonDev
+
+# Minh: data ingestion
+/producer/            @TunMinhh
+/tests/               @TunMinhh
+/scripts/             @TunMinhh @ThSonDev
+
+# Thắng: stream processing + warehouse
+/stream/              @vngbthang
+/warehouse/           @vngbthang
+
+# Tuấn: business dashboard
+/dashboards/powerbi/  @PNAnhTuan
+
+# Shared
+/analysis/            @TunMinhh @vngbthang
+/docs/                @ThSonDev @TunMinhh @vngbthang @PNAnhTuan
