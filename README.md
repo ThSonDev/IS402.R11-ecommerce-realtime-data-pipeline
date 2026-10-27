@@ -13,13 +13,22 @@
 
 ## Nội dung đề tài
 * **Điều kiện:** Python
-* **Mô tả:** Mục tiêu của bài tập này là cách phân tích dữ liệu cuộc gọi điện thoại bằng Azure Stream Analytics. Dữ liệu cuộc gọi điện thoại được tạo bởi ứng dụng client (dữ liệu luồng - data stream), chứa các cuộc gọi gian lận, được phát hiện bởi công cụ Stream Analytics. Có thể sử dụng các kỹ thuật từ bài tập này để phát hiện các loại gian lận khác, chẳng hạn như gian lận thẻ tín dụng hoặc trộm danh tính.
+* **Mô tả:** Xây dựng **trung tâm giám sát Mega Sale real-time** cho một thương hiệu điện tử bán đa sàn (Tiki, Shopee, Lazada). Luồng đơn hàng được phát lại từ dữ liệu hành vi mua sắm thật (REES46, tháng 11/2019, 67.5 triệu event), làm giàu bối cảnh Việt Nam (sàn, tỉnh thành, phương thức thanh toán) và chèn các kịch bản gian lận có nhãn. Azure Stream Analytics xử lý luồng để:
+  * Theo dõi kinh doanh: GMV, số đơn theo phút, phễu xem → giỏ → mua, top sản phẩm, so sánh theo sàn và tỉnh.
+  * Phát hiện gian lận và sự cố bằng 4 luật: bot gom hàng, một thiết bị nhiều tài khoản săn voucher, sai giá so với giá niêm yết, số đơn tăng/giảm bất thường.
+  * Trực quan kết quả: Power BI (dashboard real-time + báo cáo lịch sử có phân quyền theo sàn/miền, xem được trên mobile) và Grafana (giám sát vận hành, cảnh báo).
 * **Yêu cầu:**
   * Event Hubs
   * Azure Blob Storage
   * Stream Analytics
   * Power BI service
   * Azure Synapse Analytics
+* **Công nghệ bổ sung:** Azure Functions, Azure SQL Database, Grafana, Kafka (Docker, môi trường dev), Terraform, GitHub Actions.
+
+![Kiến trúc tham khảo của Azure Stream Analytics](figures/example-architecture.jpg)
+
+## Dữ liệu
+* REES46 – *eCommerce behavior data from multi category store*: [Kaggle](https://www.kaggle.com/datasets/mkechinov/ecommerce-behavior-data-from-multi-category-store), [REES46](https://rees46.com). Cách tải xem [data/README.md](data/README.md).
 
 ## Tài liệu tham khảo
 * https://learn.microsoft.com/en-us/azure/stream-analytics/stream-analytics-real-time-fraud-detection
