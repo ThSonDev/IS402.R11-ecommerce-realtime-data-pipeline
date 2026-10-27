@@ -1,0 +1,23 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Data (download with scripts, never commit)
+data/*
+!data/README.md
+
+# Secrets
+.env
+*.tfvars
+!*.tfvars.example
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+
+# AI
+.claude/
+CLAUDE.md
+GEMINI.md
