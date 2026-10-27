@@ -17,13 +17,13 @@ REES46 – *eCommerce behavior data from multi category store*: log hành vi th�
 
 ## Cách lấy dữ liệu
 
-Từ thư mục gốc của repo:
+Yêu cầu Python 3.12.8 trở lên (`python --version`). Chạy từ thư mục gốc của repo:
 
 ```powershell
 python -m venv .venv
 # Linux: python3 -m venv .venv
-.venv\Scripts\python -m pip install duckdb
-# Linux: .venv/bin/python -m pip install duckdb
+.venv\Scripts\python -m pip install -r requirements.txt
+# Linux: .venv/bin/python -m pip install -r requirements.txt
 .venv\Scripts\python scripts\prepare_data.py
 # Linux: .venv/bin/python scripts/prepare_data.py
 ```

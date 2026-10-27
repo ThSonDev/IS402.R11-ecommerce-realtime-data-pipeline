@@ -1,0 +1,4 @@
+# Python >= 3.12.8 for every member (check: python --version).
+# Pin exact versions so all 4 machines install the same thing.
+# Azure Functions has its own requirements.txt in functions/<app>/.
+duckdb==2.0.0
