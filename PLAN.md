@@ -75,7 +75,9 @@ Báo cáo không để dồn đến tuần 5. Mỗi tuần, ai làm xong phần 
 ### Git và GitHub
 
 - Không commit thẳng lên `main`. Mỗi việc làm trên một nhánh riêng, đặt tên ngắn, ví dụ `minh/producer-replay`, `thang/asa-rule-bot`.
-- Xong thì mở Pull Request vào `main`. GitHub tự gán người review theo `CODEOWNERS`. Cần ít nhất 1 người duyệt mới merge.
+- Xong thì mở Pull Request vào `main`. GitHub tự gán người review theo `CODEOWNERS`: chủ thư mục và Sơn (dự phòng). Cần ít nhất 1 người duyệt mới merge. Thư mục của Sơn thì Minh là người duyệt dự phòng.
+- PR thay đổi cách dùng một thư mục phải cập nhật `README.md` của thư mục đó: làm gì, cách chạy, input/output, lưu ý và giả định. Thiếu thì người review không duyệt.
+- PR thay đổi định dạng dữ liệu phải sửa [docs/event-schema.md](docs/event-schema.md) trong cùng PR.
 - Commit message tiếng Anh, ngắn, có tiền tố: `feat:`, `fix:`, `docs:`, `chore:`, `test:`. Ví dụ `feat: add bot detection rule`.
 - Việc cần làm được quản lý bằng GitHub Issues và một bảng GitHub Projects. Mỗi issue gắn người phụ trách và tuần. Bảng này và lịch sử PR là bằng chứng cộng tác cho mục 5.4 của rubric.
 - Không commit dữ liệu (`data/`), secret (`.env`, `*.tfvars`), file `.pbix`.
