@@ -75,7 +75,7 @@ Giao cho: cả nhóm. Dashboard Grafana.
 
 Việc cần làm:
 
-- Thêm Grafana vào `docker-compose.yml`, nạp sẵn data source Azure SQL và dashboard qua provisioning.
+- Thêm Grafana vào `docker-compose.yaml`, nạp sẵn data source Azure SQL và dashboard qua provisioning.
 - Dashboard war room gồm:
   - Số đơn mỗi giây.
   - GMV theo sàn.

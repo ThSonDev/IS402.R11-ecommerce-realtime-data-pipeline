@@ -2,7 +2,7 @@
 
 Vai trò: tạo ra dòng dữ liệu cho cả hệ thống. Producer đọc dataset thật, phát lại như đang diễn ra, gắn bối cảnh Việt Nam, chèn gian lận có nhãn, gửi vào Kafka / Event Hubs. Ngoài ra viết Azure Function gửi cảnh báo, đo tốc độ, và chấm điểm 4 luật.
 
-Thư mục phụ trách: `producer/`, `tests/`, `functions/`, `analysis/` (phần đánh giá), `docker-compose.yml` (phần Kafka).
+Thư mục phụ trách: `producer/`, `tests/`, `functions/`, `analysis/` (phần đánh giá), `docker-compose.yaml` (phần Kafka).
 
 ## Kết quả cuối cùng cần có
 
@@ -24,7 +24,7 @@ Giao cho: Tuấn. File dữ liệu mẫu nhỏ (khoảng 1 ngày).
 Việc cần làm:
 
 - Đọc kỹ `docs/event-schema.md`, góp ý để chốt trước cuối tuần.
-- Viết `docker-compose.yml` với một Kafka đơn node (chế độ KRaft, không cần Zookeeper).
+- Viết `docker-compose.yaml` với một Kafka đơn node (chế độ KRaft, không cần Zookeeper).
 - Producer bản đầu:
   - Đọc `data/processed/2019-Nov.parquet`, bỏ dòng trùng, sắp theo thời gian.
   - Gửi event JSON vào topic `events` theo tốc độ chọn được.
