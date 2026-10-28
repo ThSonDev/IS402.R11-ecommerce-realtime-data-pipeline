@@ -1,0 +1,35 @@
+province_code,province_name,region,population
+HCM,Ho Chi Minh,nam,14002598
+HN,Ha Noi,bac,8807523
+AG,An Giang,nam,4952238
+HP,Hai Phong,bac,4664124
+DNI,Dong Nai,nam,4491408
+NB,Ninh Binh,bac,4412264
+DTH,Dong Thap,nam,4370046
+TH,Thanh Hoa,trung,4324783
+VL,Vinh Long,nam,4257581
+CT,Can Tho,nam,4199824
+PT,Phu Tho,bac,4022638
+LDG,Lam Dong,trung,3872999
+NA,Nghe An,trung,3831694
+BN,Bac Ninh,bac,3619433
+GL,Gia Lai,trung,3583693
+HY,Hung Yen,bac,3567943
+DLK,Dak Lak,trung,3346853
+TNI,Tay Ninh,nam,3254170
+DNG,Da Nang,trung,3065628
+CM,Ca Mau,nam,2606672
+KH,Khanh Hoa,trung,2243554
+QNG,Quang Ngai,trung,2161755
+QT,Quang Tri,trung,1870845
+TQ,Tuyen Quang,bac,1865270
+TNG,Thai Nguyen,bac,1799489
+LCI,Lao Cai,bac,1778785
+HT,Ha Tinh,trung,1622901
+QNI,Quang Ninh,bac,1497447
+HUE,Hue,trung,1432986
+SL,Son La,bac,1404587
+LS,Lang Son,bac,881384
+DB,Dien Bien,bac,673091
+CB,Cao Bang,bac,573119
+LCU,Lai Chau,bac,512601
