@@ -1,27 +1,29 @@
-# Each PR touching these paths auto-requests a review from the owner.
+# Each PR touching these paths auto-requests a review from the owners.
 # The last matching pattern wins, so the catch-all goes first.
 # Owners must have write access to the repo for this to take effect.
+# Every path has at least 2 owners: the PR author can't approve their own PR,
+# so a path with a single owner would block that owner's PRs.
 
 *                     @ThSonDev
 
-# Sơn (lead): infra, CI/CD, ops dashboard
-/.github/             @ThSonDev
-/infra/               @ThSonDev
-/dashboards/grafana/  @ThSonDev
+# Sơn (lead): infra, CI/CD, ops dashboard. Minh is backup reviewer.
+/.github/             @ThSonDev @TunMinhh
+/infra/               @ThSonDev @TunMinhh
+/dashboards/grafana/  @ThSonDev @TunMinhh
 
 # Minh: data ingestion, alert function
-/producer/            @TunMinhh
-/functions/           @TunMinhh
-/tests/               @TunMinhh
+/producer/            @TunMinhh @ThSonDev
+/functions/           @TunMinhh @ThSonDev
+/tests/               @TunMinhh @ThSonDev
 /scripts/             @TunMinhh @ThSonDev
 
 # Thắng: stream processing + warehouse
-/stream/              @vngbthang
-/warehouse/           @vngbthang
+/stream/              @vngbthang @ThSonDev
+/warehouse/           @vngbthang @ThSonDev
 
 # Tuấn: business dashboard
-/dashboards/powerbi/  @PNAnhTuan
+/dashboards/powerbi/  @PNAnhTuan @ThSonDev
 
 # Shared
-/analysis/            @TunMinhh @vngbthang
+/analysis/            @TunMinhh @vngbthang @ThSonDev
 /docs/                @ThSonDev @TunMinhh @vngbthang @PNAnhTuan
