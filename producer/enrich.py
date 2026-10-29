@@ -12,6 +12,7 @@ SCHEMA_VERSION = 1
 SEED = "IS402R11"  # change it and every simulated field changes with it
 
 # USD -> VND, fixed so replays are reproducible.
+# Source: Wise mid-market rate (https://wise.com/vn/currency-converter/usd-to-vnd-rate), taken 2026-10-23 09:00 (UTC+7).
 USD_VND = 25_850
 
 # Simulation assumptions (name, weight). Keep them in the report.

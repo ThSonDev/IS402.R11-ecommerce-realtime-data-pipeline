@@ -15,20 +15,20 @@ Mỗi message là một event JSON, mã hóa UTF-8. Một event tương ứng v�
 | `schema_version` | int | có | Hiện tại là `1` |
 | `event_id` | string (UUID) | có | Định danh duy nhất, dùng để dedup |
 | `event_type` | string | có | `view`, `cart`, `purchase` |
-| `event_time` | string (ISO 8601, UTC, có mili giây) | có | Thời điểm sự kiện xảy ra sau khi replay. Stream Analytics xử lý theo trường này (event time) |
+| `event_time` | string (ISO 8601, UTC, có mili giây) | có | Thời điểm sự kiện xảy ra sau khi replay. Stream Analytics xử lý theo trường này (event time). Dịch +4h so với giờ gốc để cao điểm của dataset (08–10 UTC) rơi vào 19–21h giờ Việt Nam |
 | `original_time` | string (ISO 8601, UTC) | có | Thời điểm gốc trong dataset, để truy vết |
 | `sent_time` | string (ISO 8601, UTC, có mili giây) | có | Lúc producer gửi đi, dùng để đo độ trễ end-to-end |
 | `user_id` | int64 | có | Từ dataset, hoặc ID giả cho bot / tài khoản ảo |
 | `session_id` | string | có | Từ `user_session` của dataset |
 | `order_id` | string | chỉ với `purchase` | Các purchase cùng session là một đơn, nên `order_id` sinh từ `session_id` |
-| `device_id` | string | có | Giả lập, gắn theo user. Luật 2 dựa vào trường này |
+| `device_id` | string | có | Giả lập, gắn theo user: `dev_` + 12 ký tự hex. Dùng 12 ký tự để 3.6 triệu user không bị trùng thiết bị (trùng thì luật 2 báo nhầm). Luật 2 dựa vào trường này |
 | `is_new_account` | bool | có | Giả lập. Luật 2 dựa vào trường này |
 | `product_id` | int64 | có | Từ dataset |
 | `category_code` | string hoặc null | không | Từ dataset, thiếu khoảng 32% |
 | `brand` | string hoặc null | không | Từ dataset, thiếu khoảng 14% |
 | `price_vnd` | int64 | có | Giá dataset (USD) nhân tỷ giá cố định |
 | `channel` | string | có | `tiki`, `shopee`, `lazada` |
-| `province_code` | string | có | Mã tỉnh trong danh sách 34 tỉnh/thành mới (xem reference data) |
+| `province_code` | string | có | Mã 2–3 chữ cái tự đặt (`HCM`, `HN`, `DNG`...) của 34 tỉnh/thành mới. Danh sách đầy đủ duy nhất nằm trong `stream/reference/provinces.csv` |
 | `payment_method` | string hoặc null | chỉ với `purchase` | `cod`, `momo`, `zalopay`, `card` |
 | `voucher_code` | string hoặc null | không | Mã voucher nếu đơn có dùng |
 | `is_fraud` | bool | có | Nhãn ground truth, chỉ dùng để đánh giá. Luật phát hiện không được đọc trường này |
@@ -43,21 +43,21 @@ Ví dụ một event purchase:
   "event_id": "7f0c2a3e-5b1d-4c7e-9a52-1d2f3e4a5b6c",
   "event_type": "purchase",
   "event_time": "2026-11-11T13:15:03.120Z",
-  "original_time": "2019-11-17T05:15:03Z",
+  "original_time": "2019-11-17T09:15:03Z",
   "sent_time": "2026-11-11T13:15:03.150Z",
   "user_id": 512386086,
   "session_id": "0f039697-fedc-40fa-8830-39c1e8a2b9d4",
   "order_id": "o_0f039697fedc",
-  "device_id": "dev_8a41c2",
+  "device_id": "dev_8a41c2d93f07",
   "is_new_account": false,
   "product_id": 1004856,
   "category_code": "electronics.smartphone",
   "brand": "samsung",
-  "price_vnd": 3210500,
+  "price_vnd": 3319657,
   "channel": "shopee",
   "province_code": "HCM",
   "payment_method": "momo",
-  "voucher_code": "MEGA1111",
+  "voucher_code": "FREESHIP",
   "is_fraud": false,
   "scenario": null,
   "is_late": false
@@ -87,10 +87,10 @@ File CSV, nằm trong `stream/reference/`, đẩy lên Blob.
 
 | Cột | Kiểu | Ghi chú |
 |---|---|---|
-| `province_code` | string | |
-| `province_name` | string | Tên tiếng Việt có dấu |
-| `region` | string | `bac`, `trung`, `nam` |
-| `population` | int64 | Lấy từ nguồn chính thức, dùng làm trọng số khi gán tỉnh |
+| `province_code` | string | Mã 2–3 chữ cái tự đặt, duy nhất |
+| `province_name` | string | Tên không dấu, bỏ "Tỉnh" / "Thành phố" (ví dụ `Ho Chi Minh`) |
+| `region` | string | `bac`: Bắc Bộ đến Ninh Bình; `trung`: Thanh Hóa đến duyên hải Nam Trung Bộ và Tây Nguyên; `nam`: Đông Nam Bộ và Tây Nam Bộ |
+| `population` | int64 | "Quy mô dân số" theo Nghị quyết của Quốc hội về sắp xếp đơn vị hành chính cấp tỉnh 2025, chỉ dùng làm trọng số khi gán tỉnh (xem `producer/README.md`) |
 
 ## 3. Output của Stream Analytics
 

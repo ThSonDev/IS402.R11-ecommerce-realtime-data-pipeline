@@ -2,11 +2,3 @@
 # Pin exact versions so all 4 machines install the same thing.
 # Azure Functions has its own requirements.txt in functions/<app>/.
 duckdb==2.0.0
-
-# producer
-confluent-kafka==2.11.0
-pyarrow==21.0.0
-python-dotenv==1.1.1
-
-# tests
-pytest==8.4.1
