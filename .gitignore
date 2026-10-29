@@ -24,3 +24,5 @@ temp/
 .claude/
 CLAUDE.md
 GEMINI.md
+
+.python-version
