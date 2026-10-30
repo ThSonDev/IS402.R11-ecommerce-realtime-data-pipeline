@@ -4,13 +4,19 @@ BATCH_SIZE = 10_000
 
 COLUMNS = "event_time, event_type, product_id, category_code, brand, price, user_id, user_session"
 
+# view -> cart -> purchase (sorting event_type alphabetically would put view last).
+FUNNEL_RANK = "CASE event_type WHEN 'view' THEN 0 WHEN 'cart' THEN 1 ELSE 2 END"
+
+
 def read_events(parquet_path: str, start: str, end: str):
     query = f"""
-        SELECT DISTINCT {COLUMNS} 
-        FROM read_parquet('{parquet_path}')
-        WHERE event_time >= (?) 
-        AND event_time < (?)
-        ORDER BY event_time, event_type, product_id, category_code, brand, price, user_id, user_session
+        SELECT * FROM (
+            SELECT DISTINCT {COLUMNS} 
+            FROM read_parquet('{parquet_path}')
+            WHERE event_time >= ? 
+            AND event_time < ?
+        )
+        ORDER BY event_time, {FUNNEL_RANK}, {COLUMNS}
     """
 
     con = duckdb.connect()
