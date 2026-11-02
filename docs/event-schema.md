@@ -15,7 +15,7 @@ Mỗi message là một event JSON, mã hóa UTF-8. Một event tương ứng v�
 | `schema_version` | int | có | Hiện tại là `1` |
 | `event_id` | string (UUID) | có | Định danh duy nhất, dùng để dedup |
 | `event_type` | string | có | `view`, `cart`, `purchase` |
-| `event_time` | string (ISO 8601, UTC, có mili giây) | có | Thời điểm sự kiện xảy ra sau khi replay. Stream Analytics xử lý theo trường này (event time). Dịch +4h so với giờ gốc để cao điểm của dataset (08–10 UTC) rơi vào 19–21h giờ Việt Nam |
+| `event_time` | string (ISO 8601, UTC, có mili giây) | có | Thời điểm sự kiện xảy ra sau khi replay. Stream Analytics xử lý theo trường này (event time). Khi chạy live: tính từ giờ máy lúc bắt đầu replay, nên luôn là thời điểm hiện tại. Khi xuất file với mốc cố định (file mẫu): dịch +4h để cao điểm của dataset (08–10 UTC) rơi vào 19–21h giờ Việt Nam |
 | `original_time` | string (ISO 8601, UTC) | có | Thời điểm gốc trong dataset, để truy vết |
 | `sent_time` | string (ISO 8601, UTC, có mili giây) | có | Lúc producer gửi đi, dùng để đo độ trễ end-to-end |
 | `user_id` | int64 | có | Từ dataset, hoặc ID giả cho bot / tài khoản ảo |
