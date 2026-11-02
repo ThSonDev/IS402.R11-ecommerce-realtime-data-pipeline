@@ -1,3 +1,4 @@
+"""Read raw REES46 events for a time range: deduplicated and in a stable order."""
 import duckdb
 
 BATCH_SIZE = 10_000
@@ -9,11 +10,15 @@ FUNNEL_RANK = "CASE event_type WHEN 'view' THEN 0 WHEN 'cart' THEN 1 ELSE 2 END"
 
 
 def read_events(parquet_path: str, start: str, end: str):
+    """Yield events with start <= event_time < end as dicts, one at a time.
+
+    start / end are strings like '2019-11-01 00:00:00 UTC'.
+    """
     query = f"""
         SELECT * FROM (
-            SELECT DISTINCT {COLUMNS} 
+            SELECT DISTINCT {COLUMNS}
             FROM read_parquet('{parquet_path}')
-            WHERE event_time >= ? 
+            WHERE event_time >= ?
             AND event_time < ?
         )
         ORDER BY event_time, {FUNNEL_RANK}, {COLUMNS}
