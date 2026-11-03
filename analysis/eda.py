@@ -4,7 +4,10 @@ Usage: .venv\Scripts\python analysis\eda.py [data/processed/2019-Nov.parquet]
 # Linux: .venv/bin/python analysis/eda.py [data/processed/2019-Nov.parquet]
 Prepare the Parquet first with scripts/prepare_data.py (see data/README.md).
 """
-import sys, time, duckdb
+import sys
+import time
+
+import duckdb
 
 sys.stdout.reconfigure(encoding="utf-8")
 con = duckdb.connect()

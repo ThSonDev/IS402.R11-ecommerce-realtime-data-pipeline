@@ -1,10 +1,10 @@
 """Map original 2019 timestamps onto the replay timeline."""
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 def parse_raw(raw: str) -> datetime:
     """'2019-11-01 00:00:41 UTC' -> timezone-aware datetime in UTC."""
-    return datetime.strptime(raw.removesuffix(" UTC"), "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+    return datetime.strptime(raw.removesuffix(" UTC"), "%Y-%m-%d %H:%M:%S").replace(tzinfo=UTC)
 
 
 def replay_time(original: datetime, original_start: datetime, replay_start: datetime, speed: float = 1.0) -> datetime:
