@@ -51,8 +51,8 @@ def main():
         }
     else:
         conn = az("eventhubs", "eventhub", "authorization-rule", "keys", "list",
-                  "-g", RG, "--namespace-name", NAMESPACE, "--eventhub-name", HUB, "-n", POLICY,
-                  "--query", "primaryConnectionString")
+            "-g", RG, "--namespace-name", NAMESPACE, "--eventhub-name", HUB, "--name", POLICY,
+            "--query", "primaryConnectionString")
         values = {
             "ARM_SUBSCRIPTION_ID": az("account", "show", "--query", "id"),
             "KAFKA_BOOTSTRAP_SERVERS": f"{NAMESPACE}.servicebus.windows.net:9093",
