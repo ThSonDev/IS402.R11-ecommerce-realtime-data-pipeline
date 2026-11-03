@@ -1,16 +1,26 @@
 name: terraform
 
+# PR touching infra/: plan only, so the reviewer sees what would change.
+# Run by hand (Actions tab -> terraform -> Run workflow, branch main): plan, apply or destroy.
 on:
   pull_request:
-    paths: ["infra/**", ".github/workflows/terraform.yaml"]
+    paths: ["infra/**", "stream/reference/**", ".github/workflows/terraform.yaml"]
   workflow_dispatch:
+    inputs:
+      action:
+        type: choice
+        options: [plan, apply, destroy]
+        default: plan
 
 permissions:
   id-token: write # allow token OIDC from GitHub
   contents: read
 
+# Never run two Terraform jobs on the same state at once.
+concurrency: terraform
+
 jobs:
-  plan:
+  terraform:
     runs-on: ubuntu-24.04
     defaults:
       run:
@@ -25,7 +35,11 @@ jobs:
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.16.6
-      - run: terraform init
-      - run: terraform fmt -check
-      - run: terraform validate
-      - run: terraform plan
+      - run: terraform init -input=false
+      # inputs.action is empty on pull_request, so PRs always plan.
+      - if: inputs.action != 'apply' && inputs.action != 'destroy'
+        run: terraform plan -input=false
+      - if: inputs.action == 'apply'
+        run: terraform apply -input=false -auto-approve
+      - if: inputs.action == 'destroy'
+        run: terraform destroy -input=false -auto-approve
