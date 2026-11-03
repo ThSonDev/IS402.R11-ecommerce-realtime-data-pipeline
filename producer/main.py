@@ -9,14 +9,13 @@ import argparse
 import json
 import os
 import time
-from datetime import datetime, timedelta, timezone
-
-from confluent_kafka import Producer
-from dotenv import load_dotenv
+from datetime import UTC, datetime, timedelta
 
 import enrich
 import reader
 import timeshift
+from confluent_kafka import Producer
+from dotenv import load_dotenv
 
 DATA = "data/processed/2019-Nov.parquet"
 PROVINCES = "stream/reference/provinces.csv"
@@ -92,8 +91,8 @@ def run(args):
     topic = os.environ.get("KAFKA_TOPIC", "events")
     provinces = enrich.load_provinces(PROVINCES)
 
-    original_start = args.start.replace(tzinfo=timezone.utc)
-    replay_start = datetime.now(timezone.utc)   # live replay: events happen "now"
+    original_start = args.start.replace(tzinfo=UTC)
+    replay_start = datetime.now(UTC)   # live replay: events happen "now"
     clock_start = time.monotonic()
     failed = 0
     sent = 0
@@ -123,7 +122,7 @@ def run(args):
             event = enrich.enrich(
                 row, provinces,
                 event_time=timeshift.to_iso_ms(replay_start + timedelta(seconds=due)),
-                sent_time=timeshift.to_iso_ms(datetime.now(timezone.utc)),
+                sent_time=timeshift.to_iso_ms(datetime.now(UTC)),
             )
             while True:
                 try:

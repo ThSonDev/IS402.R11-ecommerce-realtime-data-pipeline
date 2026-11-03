@@ -3,7 +3,9 @@ r"""Download one month of REES46 data into data/raw/ and convert it to Parquet i
 Usage: .venv\Scripts\python scripts\prepare_data.py [2019-Nov]
 # Linux: .venv/bin/python scripts/prepare_data.py [2019-Nov]
 """
-import sys, time, urllib.request
+import sys
+import time
+import urllib.request
 from pathlib import Path
 
 import duckdb
