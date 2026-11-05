@@ -1,0 +1,7 @@
+{
+  "InputAlias": "events",
+  "Type": "Data Stream",
+  "Format": "Json",
+  "FilePath": "../LocalRunOutputs/events_sample_local.json",
+  "ScriptType": "InputMock"
+}

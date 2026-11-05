@@ -1,0 +1,17 @@
+-- First local KPI query: one-minute counts and GMV by channel and province.
+-- This query is the starter KPI only; fraud rules are added in a later task.
+SELECT
+    System.Timestamp() AS window_end,
+    channel,
+    province_code,
+    SUM(CASE WHEN event_type = 'view' THEN CAST(1 AS bigint) ELSE CAST(0 AS bigint) END) AS view_count,
+    SUM(CASE WHEN event_type = 'cart' THEN CAST(1 AS bigint) ELSE CAST(0 AS bigint) END) AS cart_count,
+    SUM(CASE WHEN event_type = 'purchase' THEN CAST(1 AS bigint) ELSE CAST(0 AS bigint) END) AS purchase_count,
+    COUNT(DISTINCT order_id) AS order_count,
+    SUM(CASE WHEN event_type = 'purchase' THEN price_vnd ELSE CAST(0 AS bigint) END) AS gmv_vnd
+INTO [kpi_1min]
+FROM [events] TIMESTAMP BY event_time
+GROUP BY
+    channel,
+    province_code,
+    TUMBLINGWINDOW(minute, 1);

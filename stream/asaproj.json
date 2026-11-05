@@ -1,0 +1,14 @@
+{
+    "name": "stream",
+    "startFile": "query.asaql",
+    "configurations": [
+        {
+            "filePath": "Inputs/Local_events.json",
+            "subType": "InputMock"
+        },
+        {
+            "filePath": "JobConfig.json",
+            "subType": "JobConfig"
+        }
+    ]
+}

@@ -26,3 +26,5 @@ CLAUDE.md
 GEMINI.md
 
 .python-version
+# Azure Stream Analytics local run output
+stream/LocalRunOutputs/
