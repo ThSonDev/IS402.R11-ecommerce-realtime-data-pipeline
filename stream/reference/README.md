@@ -1,15 +1,24 @@
-# Stream Analytics reference data
+# Reference data cho Stream Analytics
+
+Git là nguồn gốc; Terraform upload lên container `reference` của data lake (`infra/storage.tf`).
 
 ## `price_list.csv`
 
-`price_list.csv` contains one reference price per product, calculated from deduplicated events in REES46's November 2019 dataset, matching the producer's deduplication fields. For each `product_id`, it stores the median of positive prices after converting each observed USD price to VND at the fixed `25,850 VND/USD` rate used by the producer. Both conversion and final median use ties-to-even rounding. Zero prices are excluded; they occur only on views and carts and are not useful as reference prices.
+Giá tham chiếu cho luật 3 (sai giá), mỗi sản phẩm một dòng. Cột `product_id`, `ref_price_vnd`, sắp theo `product_id`.
 
-This is a data-derived baseline for the price anomaly rule, not an official seller catalog price. Source and license information for REES46 are documented in [data/README.md](../../data/README.md).
+Cách tính: từ dữ liệu REES46 tháng 11/2019, bỏ dòng trùng (cùng các trường producer dùng để dedup) và bỏ giá 0 (chỉ có ở view, cart). Mỗi giá USD đổi sang VND theo tỷ giá cố định `25,850` VND/USD như producer, rồi lấy trung vị theo `product_id`. Cả hai bước làm tròn kiểu ties-to-even, giống `round()` trong `producer/enrich.py`.
 
-Prepare `data/processed/2019-Nov.parquet` using [data/README.md](../../data/README.md), then run from the repository root:
+Đây là **giá tham chiếu ước tính từ dữ liệu**, không phải giá niêm yết chính thức của người bán. Nguồn và license REES46: [data/README.md](../../data/README.md).
+
+Tạo lại file (cần `data/processed/2019-Nov.parquet`, xem [data/README.md](../../data/README.md)), chạy từ thư mục gốc repo:
 
 ```powershell
 .venv\Scripts\python scripts\create_price_list.py
+# Linux: .venv/bin/python scripts/create_price_list.py
 ```
 
-The script accepts `--input` and `--output` overrides. The CSV has `product_id` and `list_price_vnd` columns and is sorted by `product_id`.
+Tùy chọn `--input`, `--output` để đổi đường dẫn.
+
+## `provinces.csv`
+
+34 tỉnh/thành, dùng khi làm giàu dữ liệu, cho bản đồ và RLS theo miền. Nguồn dân số: xem `producer/README.md`.

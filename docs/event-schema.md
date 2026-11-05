@@ -76,12 +76,12 @@ Quy ước gửi:
 
 File CSV, nằm trong `stream/reference/`, đẩy lên Blob.
 
-`price_list.csv`: giá niêm yết của từng sản phẩm, dùng cho luật 3.
+`price_list.csv`: giá tham chiếu ước tính của từng sản phẩm (không phải giá niêm yết chính thức), dùng cho luật 3.
 
 | Cột | Kiểu | Ghi chú |
 |---|---|---|
 | `product_id` | int64 | |
-| `list_price_vnd` | int64 | Gợi ý: trung vị giá của sản phẩm trong cả tháng |
+| `ref_price_vnd` | int64 | Trung vị giá dương (VND) của sản phẩm trong cả tháng 11/2019, sau dedup |
 
 `provinces.csv`: danh sách 34 tỉnh/thành, dùng cho bản đồ và RLS theo miền.
 

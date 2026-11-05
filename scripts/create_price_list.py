@@ -39,7 +39,7 @@ def build_price_list(input_path: Path, output_path: Path) -> int:
             )
             SELECT
                 product_id::BIGINT AS product_id,
-                ROUND_EVEN(MEDIAN(ROUND_EVEN(price * ?, 0)), 0)::BIGINT AS list_price_vnd
+                ROUND_EVEN(MEDIAN(ROUND_EVEN(price * ?, 0)), 0)::BIGINT AS ref_price_vnd
             FROM deduplicated_events
             WHERE product_id IS NOT NULL
               AND price IS NOT NULL
@@ -57,7 +57,7 @@ def build_price_list(input_path: Path, output_path: Path) -> int:
 
     with output_path.open("w", newline="", encoding="utf-8") as output_file:
         writer = csv.writer(output_file, lineterminator="\n")
-        writer.writerow(["product_id", "list_price_vnd"])
+        writer.writerow(["product_id", "ref_price_vnd"])
         writer.writerows(rows)
 
     return len(rows)
