@@ -3,7 +3,7 @@
 Phụ trách: Thắng
 
 - `query.asaql`: KPI theo window và 4 luật phát hiện gian lận/sự cố.
-- `reference/`: reference data đẩy lên Blob (bảng giá niêm yết, danh sách tỉnh).
+- `reference/`: reference data đẩy lên Blob (giá tham chiếu, danh sách tỉnh).
 - `test/`: input mẫu và output kỳ vọng để test query ở local (VS Code ASA extension).
 
 ## Chạy và kiểm chứng KPI 1 phút trên file mẫu
@@ -17,6 +17,6 @@ Yêu cầu: VS Code có extension **Azure Stream Analytics (ASA Tools)** và .NE
 
 Input alias `events` đọc bản replay của `test/events_sample.json`. Query dùng `TIMESTAMP BY event_time`, tumbling window 1 phút, nhóm theo `channel` và `province_code`; output gồm `view_count`, `cart_count`, `purchase_count`, `order_count` (distinct `order_id` trong từng nhóm phút) và `gmv_vnd`.
 
-Đối chiếu mẫu 1.036 events: 995 view, 16 cart, 25 purchase, GMV 177.062.417 VND. Script kiểm chứng so sánh toàn bộ 580 nhóm phút × sàn × tỉnh, bao gồm distinct orders và GMV; kết quả local đã khớp toàn bộ.
+Đối chiếu mẫu 1,036 event: 995 view, 16 cart, 25 purchase, GMV 177,062,417 VND. Script kiểm chứng so sánh toàn bộ 580 nhóm phút × sàn × tỉnh, bao gồm distinct orders và GMV; kết quả local đã khớp toàn bộ.
 
-`JobConfig.json` đặt late-arrival tolerance 1.800 giây để chạy lại file dài 30 phút như dữ liệu quá khứ; đây là cấu hình cho local replay, cần được rà soát riêng trước khi cấu hình job cloud. ASA local cảnh báo time policy không được hỗ trợ với static input. Script dịch mốc thời gian về gần giờ chạy để tránh toàn bộ event bị phân loại early như file mẫu cố định ban đầu; query vẫn tính theo `event_time`, không đổi sang processing time. Thư mục `LocalRunOutputs/` bị loại khỏi Git.
+`JobConfig.json` đặt late-arrival tolerance 1,800 giây để chạy lại file dài 30 phút như dữ liệu quá khứ; đây là cấu hình cho local replay, cần được rà soát riêng trước khi cấu hình job cloud. ASA local cảnh báo time policy không được hỗ trợ với static input. Script dịch mốc thời gian về gần giờ chạy để tránh toàn bộ event bị phân loại early như file mẫu cố định ban đầu; query vẫn tính theo `event_time`, không đổi sang processing time. Thư mục `LocalRunOutputs/` bị loại khỏi Git.
