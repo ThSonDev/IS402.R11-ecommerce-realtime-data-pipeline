@@ -2,7 +2,7 @@
   "ScriptType": "JobConfig",
   "DataLocale": "en-US",
   "OutputErrorPolicy": "Stop",
-    "EventsLateArrivalMaxDelayInSeconds": 1800,
+  "EventsLateArrivalMaxDelayInSeconds": 1800,
   "EventsOutOfOrderMaxDelayInSeconds": 0,
   "EventsOutOfOrderPolicy": "Adjust",
   "Sku": {
