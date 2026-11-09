@@ -11,9 +11,9 @@ Phụ trách: Minh
 | `reader.py` | `read_events(path, start, end)`: đọc một khoảng thời gian, bỏ dòng trùng, sắp xếp ổn định, trả từng dòng (dict). Đọc theo khúc 10,000 dòng |
 | `enrich.py` | `load_provinces(path)`, `enrich(row, provinces, event_time, sent_time)`: dòng gốc thành event 22 trường |
 | `timeshift.py` | `parse_raw`, `replay_time`, `to_iso_ms`: đặt thời gian 2019 lên trục replay |
-| `main.py` | Chương trình chính: replay một đoạn dữ liệu vào Kafka / Event Hubs theo `--speed` hoặc `--rate` |
+| `main.py` | Chương trình chính: replay một đoạn dữ liệu vào Kafka / Event Hubs theo `--speed` hoặc `--rate`, có thể gửi trễ một phần event (`--late-rate`) |
 
-Chưa có: kịch bản gian lận, event trễ.
+Test nằm trong [tests/](../tests/README.md). Chưa có: kịch bản gian lận.
 
 ## Cách chạy
 
@@ -44,6 +44,10 @@ docker compose up -d
 # Gửi đều 500 event/giây (benchmark)
 .venv\Scripts\python producer\main.py --start 2019-11-01T09:00 --end 2019-11-01T10:00 --rate 500
 # Linux: .venv/bin/python producer/main.py --start 2019-11-01T09:00 --end 2019-11-01T10:00 --rate 500
+
+# Thêm 1% event gửi trễ (is_late = true), mỗi event bị giữ lại 6–60 giây
+.venv\Scripts\python producer\main.py --start 2019-11-01T09:00 --end 2019-11-01T10:00 --speed 4 --late-rate 0.01
+# Linux: .venv/bin/python producer/main.py --start 2019-11-01T09:00 --end 2019-11-01T10:00 --speed 4 --late-rate 0.01
 ```
 
 | Tham số | Bắt buộc | Ý nghĩa |
@@ -52,9 +56,11 @@ docker compose up -d
 | `--speed N` | một trong hai | Phát nhanh gấp N lần, giữ tỷ lệ khoảng cách giữa các event |
 | `--rate N` | một trong hai | Gửi đều N event/giây, bỏ qua khoảng cách gốc |
 | `--sample-rate R` | không (mặc định 1.0) | Chỉ giữ toàn bộ event của tỷ lệ R user, để giảm lưu lượng mà không cắt vụn hành trình của user |
+| `--late-rate R` | không (mặc định 0, tắt) | Tỷ lệ event cố ý gửi trễ, gắn `is_late = true` |
+| `--late-delay S` | không (mặc định 60) | Thời gian giữ lại tối đa của một event trễ (giây). Mỗi event trễ bị giữ 10–100% con số này |
 | `--limit N` | không | Dừng sau N event, tiện khi thử |
 
-Cứ 10,000 event chương trình in tiến độ (tốc độ thực tế, mức trễ so với lịch). Bấm `Ctrl+C` để dừng: event đang chờ vẫn được gửi nốt, rồi in tổng kết `done: ... sent, ... failed, ... not delivered`.
+Cứ 10,000 event chương trình in tiến độ (tốc độ thực tế, mức trễ so với lịch, số event trễ đang giữ). Hết dữ liệu thì chương trình chờ gửi nốt các event trễ đúng giờ của chúng. Bấm `Ctrl+C` để dừng: event trễ còn giữ và event đang chờ vẫn được gửi nốt, rồi in tổng kết `done: ... sent (... late), ... failed, ... not delivered`.
 
 **4. Xem event trong Kafka.** Mở Kafka UI → Topics → `events` → Messages, hoặc xem trực tiếp trong terminal:
 
@@ -106,5 +112,11 @@ docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-s
 
 - Chạy live bắt buộc dùng giờ hiện tại: Stream Analytics đối chiếu `event_time` với lúc event đến (event quá cũ hoặc ở tương lai bị điều chỉnh hoặc bỏ), và dashboard real-time chỉ hiển thị khoảng thời gian gần đây.
 - Muốn demo có lưu lượng giờ cao điểm thì chọn đoạn dữ liệu cao điểm, ví dụ `--start 2019-11-01T09:00`.
+
+**Event trễ.**
+- Bật bằng `--late-rate`. Event nào trễ và trễ bao lâu được chọn bằng hash của `event_id`, nên chạy lại cùng đoạn dữ liệu thì đúng những event đó bị trễ, đúng thời gian đó.
+- `event_time` của event trễ vẫn là thời điểm đúng theo lịch, chỉ có lúc đến Kafka bị muộn; `sent_time` là lúc thật sự gửi, nên `sent_time − event_time` là độ trễ.
+- Event trễ cố ý phá thứ tự (ví dụ một `view` trễ đến sau `purchase` của cùng user). Không dùng `--late-rate` thì thứ tự luôn được giữ.
+- Mặc định giữ lại 6–60 giây, đủ lâu để thử chính sách late arrival của Stream Analytics. Ngưỡng của job do Thắng cấu hình.
 
 **Giới hạn tốc độ.** Dataset trung bình 26.5 event/giây, đỉnh 243 event/giây. Một TU Event Hubs nhận 1,000 event/giây, nên `speed` tối đa khoảng 4 nếu không lấy mẫu.
