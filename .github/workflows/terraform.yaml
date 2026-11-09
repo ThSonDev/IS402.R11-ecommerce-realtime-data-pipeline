@@ -4,12 +4,14 @@ name: terraform
 # Run by hand (Actions tab -> terraform -> Run workflow, branch main): plan, apply or destroy.
 on:
   pull_request:
-    paths: ["infra/**", "stream/reference/**", ".github/workflows/terraform.yaml"]
+    paths: ["infra/**", "stream/reference/**", "stream/query.asaql", ".github/workflows/terraform.yaml"]
   workflow_dispatch:
     inputs:
+      # destroy-eventhubs: turn off only the hourly-billed Event Hubs (plus the ASA input on it),
+      # keep the lake, SQL and Synapse. Stop the ASA job first. `apply` brings it back.
       action:
         type: choice
-        options: [plan, apply, destroy]
+        options: [plan, apply, destroy-eventhubs, destroy]
         default: plan
 
 permissions:
@@ -35,11 +37,23 @@ jobs:
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.16.6
+          terraform_wrapper: false # wrapper adds lines to stdout, breaks `show -json | jq`
       - run: terraform init -input=false
       # inputs.action is empty on pull_request, so PRs always plan.
-      - if: inputs.action != 'apply' && inputs.action != 'destroy'
-        run: terraform plan -input=false
+      - if: ${{ !inputs.action || inputs.action == 'plan' }}
+        run: terraform plan -input=false -out=tfplan
+      # Red check when the plan deletes anything (a replace is a delete + create).
+      # Not a required check: a deliberate destroy can still be merged after review.
+      - if: ${{ !inputs.action || inputs.action == 'plan' }}
+        name: Fail on destroy or replace
+        run: |
+          terraform show -json tfplan |
+            jq -r '(.resource_changes // [])[] | select(.change.actions | index("delete")) | "will destroy: \(.address)"' |
+            tee destroys.txt
+          test ! -s destroys.txt
       - if: inputs.action == 'apply'
         run: terraform apply -input=false -auto-approve
+      - if: inputs.action == 'destroy-eventhubs'
+        run: terraform destroy -input=false -auto-approve -target azurerm_eventhub_namespace.main
       - if: inputs.action == 'destroy'
         run: terraform destroy -input=false -auto-approve
