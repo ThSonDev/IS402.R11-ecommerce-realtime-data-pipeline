@@ -1,0 +1,3 @@
+# LF everywhere: same bytes on Windows and Linux (Terraform hashes uploaded files,
+# CI runs on Linux). Git still detects binary files (images) and leaves them alone.
+* text=auto eol=lf

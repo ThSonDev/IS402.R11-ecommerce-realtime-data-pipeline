@@ -11,6 +11,12 @@ resource "azurerm_synapse_workspace" "main" {
   identity {
     type = "SystemAssigned"
   }
+
+  # Azure fills in a default SQL login even with Entra-only auth; without this,
+  # every plan would destroy and re-create the workspace.
+  lifecycle {
+    ignore_changes = [sql_administrator_login]
+  }
 }
 
 resource "azurerm_synapse_workspace_aad_admin" "main" {
