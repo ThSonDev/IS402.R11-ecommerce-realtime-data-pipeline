@@ -46,7 +46,7 @@ Việc cần làm:
 
 - Thêm cấu hình gửi vào Event Hubs qua Kafka endpoint. Chỉ đổi thông tin kết nối trong `.env`, code giữ nguyên.
 - Dịch thời gian: đổi `event_time` về thời điểm hiện tại, giữ `original_time`, thêm `sent_time`.
-- Dịch múi giờ để giờ cao điểm rơi vào buổi tối giờ Việt Nam. Giờ cao điểm gốc là 08–10 UTC.
+- Muốn demo giờ cao điểm thì replay đoạn 08–10 UTC của dataset, ví dụ `--start 2019-11-01T09:00`. Chạy live thì `event_time` luôn là giờ hiện tại, không dịch +4h (xem `docs/event-schema.md`).
 - Thêm event trễ: một tỷ lệ nhỏ event gửi chậm hơn thời gian thật, gắn `is_late = true`.
 - Viết test `pytest` cho phần làm giàu dữ liệu:
   - Cùng seed thì ra cùng kết quả.
