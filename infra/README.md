@@ -11,9 +11,10 @@ Tạo tay một lần, Terraform không quản lý: resource group `rg-megasale-
 | File | Tạo gì |
 |---|---|
 | `eventhubs.tf` | Namespace `evhns-megasale-dev` (Standard, 1 TU), hub `events` (4 partition), consumer group `asa`, policy `producer-send` (chỉ gửi) và `asa-listen` (chỉ đọc) |
-| `storage.tf` | ADLS Gen2 `stmegasaledev`: container `reference` (có `provinces.csv` lấy từ `stream/reference/`), `lake`, `synapse` |
+| `storage.tf` | ADLS Gen2 `stmegasaledev`: container `reference` (`provinces.csv`, `price_list.csv` lấy từ `stream/reference/`), `lake`, `synapse` |
 | `sql.tf` | SQL server `sql-megasale-dev` + DB `sqldb-megasale-dev` bản free offer (hết hạn mức thì tự pause đến tháng sau, không tính tiền) |
 | `synapse.tf` | Workspace `synw-megasale-dev`, chỉ dùng serverless |
+| `stream_analytics.tf` | Job `asa-megasale-dev` (StandardV2, 1/3 SU), query từ `stream/query.asaql`. Input `events` (Event Hubs), reference `price_list`, `provinces`. Output `raw_archive` (Parquet), `kpi_1min` (JSON) vào container `lake`, thư mục `<output>/yyyy/MM/dd/HH` |
 
 Tên theo mẫu `<loại>-megasale-dev`, dùng `local.name`. SQL free offer đi qua provider `azapi` vì `azurerm` chưa hỗ trợ.
 
@@ -31,11 +32,16 @@ terraform plan
 
 `apply` / `destroy` chạy qua GitHub Actions: tab Actions → `terraform` → Run workflow, chọn nhánh `main` và action. Sơn có thể chạy local khi cần.
 
-**Tiết kiệm tiền.** Event Hubs tính tiền theo giờ khi còn tồn tại. Hết buổi test thì xóa riêng nó, giữ lại data lake, SQL, Synapse:
+**Tiết kiệm tiền.** Event Hubs tính tiền theo giờ khi còn tồn tại, Stream Analytics tính tiền khi đang chạy.
 
-```powershell
-terraform destroy -target azurerm_eventhub_namespace.main
-```
+| Việc | Cách làm | Ai làm |
+|---|---|---|
+| Bật Event Hubs | Actions → `terraform` → `apply`, rồi `python scripts/fill_env.py` (key đổi sau mỗi lần dựng lại) | Thành viên có quyền ghi repo |
+| Chạy ASA job | `az stream-analytics job start -g rg-megasale-dev -n asa-megasale-dev --output-start-mode JobStartTime` (lần đầu `az` hỏi cài extension, chọn Y) | Thành viên (Contributor) |
+| Dừng ASA job | `az stream-analytics job stop -g rg-megasale-dev -n asa-megasale-dev` | Thành viên |
+| Tắt Event Hubs | **Dừng ASA job trước**, rồi Actions → `terraform` → `destroy-eventhubs`. Giữ lại data lake, SQL, Synapse và job ASA (job dừng thì không tốn tiền) | Thành viên có quyền ghi repo |
+
+`destroy` (xóa toàn bộ) chỉ Sơn dùng. Sửa `stream/query.asaql` thì job phải đang dừng lúc `apply`.
 
 ## Kết nối
 
