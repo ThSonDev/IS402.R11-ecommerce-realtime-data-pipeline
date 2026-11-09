@@ -18,11 +18,19 @@ resource "azurerm_storage_container" "main" {
   storage_account_id = azurerm_storage_account.lake.id
 }
 
-# Re-uploaded whenever the file changes (content_md5), so Git stays the source of truth.
-resource "azurerm_storage_blob" "provinces" {
-  name                 = "provinces.csv"
+# Reference data for ASA. Re-uploaded whenever a file changes (content_md5),
+# so Git stays the source of truth.
+resource "azurerm_storage_blob" "reference" {
+  for_each             = toset(["provinces.csv", "price_list.csv"])
+  name                 = each.key
   storage_container_id = azurerm_storage_container.main["reference"].id
   type                 = "Block"
-  source               = "${path.module}/../stream/reference/provinces.csv"
-  content_md5          = filemd5("${path.module}/../stream/reference/provinces.csv")
+  source               = "${path.module}/../stream/reference/${each.key}"
+  content_md5          = filemd5("${path.module}/../stream/reference/${each.key}")
+}
+
+# Renamed from a single resource: keep the existing blob instead of re-creating it.
+moved {
+  from = azurerm_storage_blob.provinces
+  to   = azurerm_storage_blob.reference["provinces.csv"]
 }

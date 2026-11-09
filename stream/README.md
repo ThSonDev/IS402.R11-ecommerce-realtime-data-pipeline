@@ -20,3 +20,7 @@ Input alias `events` đọc bản replay của `test/events_sample.json`. Query 
 Đối chiếu mẫu 1,036 event: 995 view, 16 cart, 25 purchase, GMV 177,062,417 VND. Script kiểm chứng so sánh toàn bộ 580 nhóm phút × sàn × tỉnh, bao gồm distinct orders và GMV; kết quả local đã khớp toàn bộ.
 
 `JobConfig.json` đặt late-arrival tolerance 1,800 giây để chạy lại file dài 30 phút như dữ liệu quá khứ; đây là cấu hình cho local replay, cần được rà soát riêng trước khi cấu hình job cloud. ASA local cảnh báo time policy không được hỗ trợ với static input. Script dịch mốc thời gian về gần giờ chạy để tránh toàn bộ event bị phân loại early như file mẫu cố định ban đầu; query vẫn tính theo `event_time`, không đổi sang processing time. Thư mục `LocalRunOutputs/` bị loại khỏi Git.
+
+## Chạy trên cloud
+
+Job `asa-megasale-dev` dựng bằng Terraform (`infra/stream_analytics.tf`), đọc thẳng `query.asaql`. Alias trên cloud: input `events`, reference `price_list`, `provinces`; output `raw_archive` (Parquet) và `kpi_1min` (JSON tạm, chuyển sang SQL sau #35), cả hai vào container `lake` theo `<output>/yyyy/MM/dd/HH`. Đổi tên alias trong query thì phải đổi cả trong Terraform. Cách bật/tắt job xem `infra/README.md`.

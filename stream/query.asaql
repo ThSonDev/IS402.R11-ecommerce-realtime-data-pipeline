@@ -15,3 +15,9 @@ GROUP BY
     channel,
     province_code,
     TUMBLINGWINDOW(minute, 1);
+
+-- Raw archive: every event as-is into the data lake (Parquet, by date/hour) for Synapse.
+SELECT
+    *
+INTO [raw_archive]
+FROM [events] TIMESTAMP BY event_time;
