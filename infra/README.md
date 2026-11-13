@@ -46,12 +46,19 @@ terraform plan
 ## Kết nối
 
 - **Producer → Event Hubs:** `python scripts/fill_env.py` tự điền `.env` (xem `scripts/README.md`).
-- **SQL, Synapse:** chỉ đăng nhập bằng Entra ID (tài khoản trường), không có mật khẩu SQL. Sơn là admin; thành viên được thêm bằng T-SQL (Sơn chạy một lần trên DB):
+- **SQL, Synapse:** chỉ đăng nhập bằng Entra ID (tài khoản trường), không có mật khẩu SQL. Công cụ: `winget install Microsoft.Sqlcmd`, rồi `sqlcmd -S <server> -d <db> --authentication-method ActiveDirectoryAzCli` (dùng `az login`).
+- **SQL DB:** Sơn là admin. User được thêm bằng T-SQL (Sơn đã chạy cho 3 thành viên và Grafana):
 
   ```sql
   CREATE USER [<mssv>@ms.uit.edu.vn] FROM EXTERNAL PROVIDER;
   ALTER ROLE db_owner ADD MEMBER [<mssv>@ms.uit.edu.vn];
+  -- Grafana: app grafana-megasale-reader, chỉ đọc
+  CREATE USER [grafana-megasale-reader] FROM EXTERNAL PROVIDER;
+  ALTER ROLE db_datareader ADD MEMBER [grafana-megasale-reader];
   ```
+
+- **Synapse serverless** (`synw-megasale-dev-ondemand.sql.azuresynapse.net`): quyền là Synapse RBAC, Terraform cấp trong `synapse.tf` (Sơn: Synapse Administrator, thành viên: Synapse SQL Administrator). Admin Entra của workspace **không đủ** để đăng nhập serverless; mặc định chỉ app CI (người tạo workspace) có role.
+- **Grafana → SQL DB:** app `grafana-megasale-reader`, không có role Azure, secret hạn ngắn nằm trong `.env`. Grafana chạy local nên không dùng được Managed Identity; Current User thì không chạy được alert.
 
 - **Đọc data lake:** cần role Storage Blob Data Reader, Sơn cấp tay một lần ở mức resource group (không mất khi destroy/apply).
 
