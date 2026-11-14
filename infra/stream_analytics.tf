@@ -7,7 +7,7 @@ resource "azurerm_stream_analytics_job" "main" {
   location            = var.location
   resource_group_name = data.azurerm_resource_group.main.name
   sku_name            = "StandardV2"
-  streaming_units     = 1 # V2: 1 = the smallest size (1/3 SU)
+  streaming_units     = 3 # V2 API takes SU x 10: 3 = 1/3 SU (smallest), 7 = 2/3, 10 = 1
   compatibility_level = "1.2"
   data_locale         = "en-US"
   output_error_policy = "Stop"
