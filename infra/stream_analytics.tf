@@ -80,6 +80,9 @@ resource "azurerm_stream_analytics_output_blob" "main" {
   path_pattern              = "${each.key}/{date}/{time}"
   date_format               = "yyyy/MM/dd"
   time_format               = "HH"
+  # Parquet requires a batch: a file is written at 2,000 rows or after 1 minute (portal defaults).
+  batch_min_rows      = each.value == "Parquet" ? 2000 : null
+  batch_max_wait_time = each.value == "Parquet" ? "00:01:00" : null
 
   serialization {
     type     = each.value
