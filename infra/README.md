@@ -14,7 +14,7 @@ Tạo tay một lần, Terraform không quản lý: resource group `rg-megasale-
 | `storage.tf` | ADLS Gen2 `stmegasaledev`: container `reference` (`provinces.csv`, `price_list.csv` lấy từ `stream/reference/`), `lake`, `synapse` |
 | `sql.tf` | SQL server `sql-megasale-dev` + DB `sqldb-megasale-dev` bản free offer (hết hạn mức thì tự pause đến tháng sau, không tính tiền) |
 | `synapse.tf` | Workspace `synw-megasale-dev`, chỉ dùng serverless |
-| `stream_analytics.tf` | Job `asa-megasale-dev` (StandardV2, 1/3 SU), query từ `stream/query.asaql`. Input `events` (Event Hubs), reference `price_list`, `provinces`. Output `raw_archive` (Parquet), `kpi_1min` (JSON) vào container `lake`, thư mục `<output>/yyyy/MM/dd/HH` |
+| `stream_analytics.tf` | Job `asa-megasale-dev` (StandardV2, 1/3 SU), query từ `stream/query.asaql`. Input `events` (Event Hubs), reference `price_list`, `provinces`. Outputs `raw_archive` (Parquet), `kpi_1min` (JSON) vào container `lake`, `kpi_1min_sql` / `pipeline_latency` vào Azure SQL, và `kpi_1min_powerbi` vào workspace `Megasale-powerBI` bằng managed identity |
 
 Tên theo mẫu `<loại>-megasale-dev`, dùng `local.name`. SQL free offer đi qua provider `azapi` vì `azurerm` chưa hỗ trợ.
 
@@ -47,6 +47,8 @@ terraform plan
 
 - **Producer → Event Hubs:** `python scripts/fill_env.py` tự điền `.env` (xem `scripts/README.md`).
 - **SQL, Synapse:** chỉ đăng nhập bằng Entra ID (tài khoản trường), không có mật khẩu SQL. Công cụ: `winget install Microsoft.Sqlcmd`, rồi `sqlcmd -S <server> -d <db> --authentication-method ActiveDirectoryAzCli` (dùng `az login`).
+- **ASA → SQL DB:** trước khi start ASA, chạy `scripts/sql/create_asa_output_tables.sql` trong `sqldb-megasale-dev`. Sau khi Terraform bật system-assigned identity cho ASA, SQL administrator chạy `scripts/sql/grant_asa_output_permissions.sql` trong cùng database để tạo user `asa-megasale-dev` và cấp quyền đọc/ghi đúng hai bảng. Output aliases và table schemas phải khớp `docs/event-schema.md`.
+- **ASA → Power BI:** sau `terraform apply`, lấy principal ID của job bằng `az stream-analytics job show -g rg-megasale-dev -n asa-megasale-dev --query identity.principalId -o tsv`. Thêm principal của `asa-megasale-dev` làm **Contributor** trong workspace `Megasale-powerBI` (group ID `103d1909-ed9d-45d5-97d8-6c7581fc0065`). Tuấn hoặc workspace admin cần cấp quyền này trước khi start job; Power BI tenant admin có thể cần bật quyền service principal trong Developer settings. ASA sẽ tạo dataset `megasale_kpi_1min` và table `kpi_1min` khi có KPI đầu ra.
 - **SQL DB:** Sơn là admin. User được thêm bằng T-SQL (Sơn đã chạy cho 3 thành viên và Grafana):
 
   ```sql

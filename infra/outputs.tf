@@ -18,3 +18,9 @@ output "sql_server_fqdn" {
 output "synapse_serverless_endpoint" {
   value = azurerm_synapse_workspace.main.connectivity_endpoints["sqlOnDemand"]
 }
+
+# Give this principal Contributor access to the Power BI workspace for the ASA
+# managed-identity Power BI output.
+output "asa_principal_id" {
+  value = azurerm_stream_analytics_job.main.identity[0].principal_id
+}

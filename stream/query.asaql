@@ -16,8 +16,77 @@ GROUP BY
     province_code,
     TUMBLINGWINDOW(minute, 1);
 
+-- The same KPI contract also feeds SQL Database. The lake output above remains
+-- the durable JSON copy; use a distinct alias for each ASA sink.
+SELECT
+    System.Timestamp() AS window_end,
+    channel,
+    province_code,
+    SUM(CASE WHEN event_type = 'view' THEN CAST(1 AS bigint) ELSE CAST(0 AS bigint) END) AS view_count,
+    SUM(CASE WHEN event_type = 'cart' THEN CAST(1 AS bigint) ELSE CAST(0 AS bigint) END) AS cart_count,
+    SUM(CASE WHEN event_type = 'purchase' THEN CAST(1 AS bigint) ELSE CAST(0 AS bigint) END) AS purchase_count,
+    COUNT(DISTINCT order_id) AS order_count,
+    SUM(CASE WHEN event_type = 'purchase' THEN price_vnd ELSE CAST(0 AS bigint) END) AS gmv_vnd
+INTO [kpi_1min_sql]
+FROM [events] TIMESTAMP BY event_time
+GROUP BY
+    channel,
+    province_code,
+    TUMBLINGWINDOW(minute, 1);
+
+-- Power BI real-time uses the same one-minute KPI contract.
+SELECT
+    System.Timestamp() AS window_end,
+    channel,
+    province_code,
+    SUM(CASE WHEN event_type = 'view' THEN CAST(1 AS bigint) ELSE CAST(0 AS bigint) END) AS view_count,
+    SUM(CASE WHEN event_type = 'cart' THEN CAST(1 AS bigint) ELSE CAST(0 AS bigint) END) AS cart_count,
+    SUM(CASE WHEN event_type = 'purchase' THEN CAST(1 AS bigint) ELSE CAST(0 AS bigint) END) AS purchase_count,
+    COUNT(DISTINCT order_id) AS order_count,
+    SUM(CASE WHEN event_type = 'purchase' THEN price_vnd ELSE CAST(0 AS bigint) END) AS gmv_vnd
+INTO [kpi_1min_powerbi]
+FROM [events] TIMESTAMP BY event_time
+GROUP BY
+    channel,
+    province_code,
+    TUMBLINGWINDOW(minute, 1);
+
+-- Pipeline latency is averaged per event-time minute. The two Event Hubs
+-- metadata timestamps are supplied by the Event Hubs input adapter.
+SELECT
+    System.Timestamp() AS window_end,
+    COUNT(*) AS event_count,
+    AVG(CAST(DATEDIFF(millisecond, CAST(sent_time AS datetime), EventEnqueuedUtcTime) AS float)) AS avg_producer_to_eventhub_ms,
+    AVG(CAST(DATEDIFF(millisecond, EventEnqueuedUtcTime, EventProcessedUtcTime) AS float)) AS avg_eventhub_to_asa_ms,
+    AVG(CAST(DATEDIFF(millisecond, CAST(sent_time AS datetime), EventProcessedUtcTime) AS float)) AS avg_end_to_end_ms
+INTO [pipeline_latency]
+FROM [events] TIMESTAMP BY event_time
+GROUP BY TUMBLINGWINDOW(minute, 1);
+
 -- Raw archive: every event as-is into the data lake (Parquet, by date/hour) for Synapse.
 SELECT
-    *
+    schema_version,
+    event_id,
+    event_type,
+    event_time,
+    original_time,
+    sent_time,
+    user_id,
+    session_id,
+    order_id,
+    device_id,
+    is_new_account,
+    product_id,
+    category_code,
+    brand,
+    price_vnd,
+    channel,
+    province_code,
+    payment_method,
+    voucher_code,
+    is_fraud,
+    scenario,
+    is_late,
+    GetMetadataPropertyValue([events], '[EventHub].[EventEnqueuedUtcTime]') AS EventEnqueuedUtcTime
 INTO [raw_archive]
 FROM [events] TIMESTAMP BY event_time;

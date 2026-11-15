@@ -19,6 +19,12 @@ resource "azurerm_stream_analytics_job" "main" {
 
   transformation_query = file("${path.module}/../stream/query.asaql")
   tags                 = local.tags
+
+  # SQL Database and Power BI use the job identity; no SQL or refresh-token
+  # credentials are stored in Terraform state.
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 # Input alias `events` in the query. Destroyed together with the Event Hubs namespace
@@ -59,9 +65,8 @@ resource "azurerm_stream_analytics_reference_input_blob" "main" {
   }
 }
 
-# Outputs into the data lake, one folder per output, partitioned by date and hour
-# so Synapse serverless can read only the hours it needs.
-# kpi_1min goes to the lake for now; SQL and Power BI outputs come after #35.
+# Durable outputs into the data lake, partitioned by date and hour so Synapse
+# serverless can read only the hours it needs.
 locals {
   asa_outputs = {
     raw_archive = "Parquet"
@@ -89,4 +94,39 @@ resource "azurerm_stream_analytics_output_blob" "main" {
     encoding = each.value == "Json" ? "UTF8" : null
     format   = each.value == "Json" ? "LineSeparated" : null
   }
+}
+
+# SQL output tables are created by scripts/sql/create_asa_output_tables.sql.
+# After Terraform creates the job identity, run the permission script once as
+# the SQL Entra administrator before starting ASA.
+locals {
+  asa_sql_outputs = {
+    kpi_1min_sql     = "dbo.kpi_1min"
+    pipeline_latency = "dbo.pipeline_latency"
+  }
+}
+
+resource "azurerm_stream_analytics_output_mssql" "main" {
+  for_each = local.asa_sql_outputs
+
+  name                      = each.key
+  resource_group_name       = data.azurerm_resource_group.main.name
+  stream_analytics_job_name = azurerm_stream_analytics_job.main.name
+  server                    = azurerm_mssql_server.main.fully_qualified_domain_name
+  database                  = azapi_resource.sql_db.name
+  table                     = each.value
+  authentication_mode       = "Msi"
+  max_batch_count           = 1000
+  max_writer_count          = 1
+}
+
+# The Power BI connector uses the same system-assigned identity as the SQL
+# outputs. A workspace administrator must add asa-megasale-dev as Contributor.
+resource "azurerm_stream_analytics_output_powerbi" "kpi_1min" {
+  name                    = "kpi_1min_powerbi"
+  stream_analytics_job_id = azurerm_stream_analytics_job.main.id
+  group_id                = "103d1909-ed9d-45d5-97d8-6c7581fc0065"
+  group_name              = "Megasale-powerBI"
+  dataset                 = "megasale_kpi_1min"
+  table                   = "kpi_1min"
 }
