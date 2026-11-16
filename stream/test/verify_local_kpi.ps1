@@ -26,7 +26,13 @@ if (-not $OutputPath) {
 }
 
 $events = @([System.IO.File]::ReadAllLines($inputFile) | ForEach-Object { $_ | ConvertFrom-Json })
-$rows = @([System.IO.File]::ReadAllLines($outputFile) | ForEach-Object { $_ | ConvertFrom-Json })
+$outputLines = [System.IO.File]::ReadAllLines($outputFile)
+foreach ($line in $outputLines) {
+    if ($line -match '"gmv_vnd"\s*:\s*-?\d+(?:\.\d+|[eE][+-]?\d+)') {
+        throw "gmv_vnd must be serialized as an integer (int64 contract): $line"
+    }
+}
+$rows = @($outputLines | ForEach-Object { $_ | ConvertFrom-Json })
 if ($events.Count -eq 0 -or $rows.Count -eq 0) {
     throw 'Input and output must both contain rows.'
 }
