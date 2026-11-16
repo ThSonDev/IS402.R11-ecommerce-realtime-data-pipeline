@@ -24,3 +24,11 @@ Input alias `events` đọc bản replay của `test/events_sample.json`. Query 
 ## Chạy trên cloud
 
 Job `asa-megasale-dev` dựng bằng Terraform (`infra/stream_analytics.tf`), đọc thẳng `query.asaql`. Alias trên cloud: input `events`, reference `price_list`, `provinces`; output `raw_archive` (Parquet) và `kpi_1min` (JSON tạm, chuyển sang SQL sau #35), cả hai vào container `lake` theo `<output>/yyyy/MM/dd/HH`. Đổi tên alias trong query thì phải đổi cả trong Terraform. Cách bật/tắt job xem `infra/README.md`.
+
+### Chính sách event-time trên cloud (#37)
+
+Query cloud dùng `TIMESTAMP BY event_time`; cấu hình trong Terraform là late-arrival tolerance **5 giây**, out-of-order tolerance **0 giây**, policy **Adjust**. Chọn cửa sổ trễ ngắn để watermark và KPI một phút không phải chờ lâu; event đến trễ hoặc sai thứ tự được giữ lại nhưng `System.Timestamp()` có thể bị điều chỉnh sang thời gian gần lúc nhận. Payload `event_time` vẫn là giá trị producer gửi, nên dùng `System.Timestamp()` nếu cần phân nhóm theo thời gian ASA đã điều chỉnh.
+
+`stream/JobConfig.json` có late-arrival tolerance 1.800 giây cho replay tĩnh local; đó là cấu hình riêng cho file quá khứ và không phải cấu hình cloud.
+
+Kết quả chạy cloud và cách đọc metric được ghi tại [docs/thang-event-time-policy.md](../docs/thang-event-time-policy.md). Thử nghiệm dùng baseline `main` hiện có; baseline này đọc `[events]` ở hai câu query riêng, vì vậy metric ASA có thể đếm một event ở cả hai nhánh. Branch PR #82 đã đổi sang một input stream dùng chung.

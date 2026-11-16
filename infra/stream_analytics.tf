@@ -12,7 +12,8 @@ resource "azurerm_stream_analytics_job" "main" {
   data_locale         = "en-US"
   output_error_policy = "Stop"
 
-  # Event time policy: Thắng finalizes these in #37.
+  # Use a short late-arrival tolerance to keep one-minute outputs timely.
+  # Adjust late and out-of-order events instead of dropping them; see stream/README.md.
   events_late_arrival_max_delay_in_seconds = 5
   events_out_of_order_max_delay_in_seconds = 0
   events_out_of_order_policy               = "Adjust"
