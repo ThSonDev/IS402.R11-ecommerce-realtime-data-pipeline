@@ -94,14 +94,60 @@ File CSV, nằm trong `stream/reference/`, đẩy lên Blob.
 
 ## 3. Output của Stream Analytics
 
-Phần này sẽ được chốt chi tiết ở tuần 2. Hiện chỉ cố định tên và ý nghĩa để Tuấn và Sơn bắt đầu thiết kế dashboard.
+Các schema dưới đây là hợp đồng output của Stream Analytics. Thời gian dùng UTC; JSON serialize thời gian theo ISO 8601. Kiểu logic `int64`, `float64`, `bool`, `string` và `datetime` ánh xạ trong Azure SQL lần lượt sang `bigint`, `float`, `bit`, `nvarchar` và `datetime2(3)`. `entity_id` và `event_id` của `alerts` cho phép `null` theo quy tắc dưới đây.
 
-| Output | Đích | Nội dung |
-|---|---|---|
-| `raw_archive` | ADLS Gen2, Parquet, chia thư mục theo ngày/giờ | Toàn bộ event, thêm thời điểm Event Hubs nhận (`EventEnqueuedUtcTime`). Nguồn cho Synapse và Power BI lịch sử |
-| `kpi_1min` | Azure SQL DB và Power BI streaming | Mỗi phút, theo `channel` × `province_code`: số view, cart, purchase, số đơn, GMV |
-| `alerts` | Azure SQL DB và Azure Function | Mỗi cảnh báo của 4 luật: thời điểm, tên luật, đối tượng (user / device / product / toàn hệ thống), giá trị đo được, ngưỡng, `event_id` mẫu |
-| `pipeline_latency` | Azure SQL DB | Độ trễ theo cửa sổ: từ `sent_time` đến lúc Event Hubs nhận và lúc Stream Analytics xuất kết quả |
+### `raw_archive`
+
+Đích: ADLS Gen2, Parquet, chia thư mục theo ngày/giờ tại `raw_archive/yyyy/MM/dd/HH`. Mỗi dòng giữ nguyên toàn bộ trường payload của event ở phần 1 và thêm metadata nhận từ Event Hubs:
+
+| Cột | Kiểu | Bắt buộc | Ý nghĩa |
+|---|---|---|---|
+| Tất cả cột trong phần 1 | như phần 1 | có theo quy định từng cột | Event gốc sau khi producer làm giàu |
+| `EventEnqueuedUtcTime` | datetime (UTC) | có | Thời điểm Event Hubs nhận event; dùng đối chiếu độ trễ và truy vết |
+
+Query phải chiếu metadata `EventEnqueuedUtcTime` tường minh từ input Event Hubs. `SELECT *` chỉ giữ các trường payload; khi thêm metadata, liệt kê cột tường minh để tránh cột trùng.
+
+### `kpi_1min`
+
+Đích: Azure SQL DB và Power BI real-time. Dùng tumbling window một phút theo `event_time`. Mỗi dòng đại diện cho một phút và một cặp `channel` × `province_code` xuất hiện trong input của cửa sổ; không tạo dòng cho cặp không có event:
+
+| Cột | Kiểu | Bắt buộc | Ý nghĩa |
+|---|---|---|---|
+| `window_end` | datetime (UTC) | có | Thời điểm kết thúc cửa sổ tumbling một phút |
+| `channel` | string | có | Sàn bán hàng |
+| `province_code` | string | có | Mã tỉnh/thành |
+| `view_count` | int64 | có | Số event `view` trong cửa sổ |
+| `cart_count` | int64 | có | Số event `cart` trong cửa sổ |
+| `purchase_count` | int64 | có | Số event `purchase` trong cửa sổ |
+| `order_count` | int64 | có | Số `order_id` khác nhau trong cửa sổ |
+| `gmv_vnd` | int64 | có | Tổng `price_vnd` của event `purchase`, đơn vị VND |
+
+### `alerts`
+
+Đích: Azure SQL DB và Azure Function. Một dòng cho mỗi cảnh báo; `entity_id` rỗng khi cảnh báo áp dụng cho toàn hệ thống, còn `event_id` có thể rỗng nếu luật không gắn được một event đại diện:
+
+| Cột | Kiểu | Bắt buộc | Ý nghĩa |
+|---|---|---|---|
+| `alert_time` | datetime (UTC) | có | Thời điểm Stream Analytics phát cảnh báo |
+| `rule_name` | string | có | Tên luật: `bot`, `multi_account`, `price_glitch` hoặc `payment_outage` |
+| `entity_type` | string | có | Loại đối tượng: `user`, `device`, `product` hoặc `system` |
+| `entity_id` | string hoặc null | có | ID đối tượng; null với `system` |
+| `metric_name` | string | có | Tên chỉ số đã vượt điều kiện cảnh báo |
+| `metric_value` | float64 | có | Giá trị đo được |
+| `threshold` | float64 | có | Ngưỡng kích hoạt cảnh báo |
+| `event_id` | string (UUID) hoặc null | có | Event đại diện để truy vết; null nếu không có event đơn lẻ phù hợp |
+
+### `pipeline_latency`
+
+Đích: Azure SQL DB. Dùng tumbling window một phút theo `event_time`, một dòng mỗi cửa sổ. Các giá trị độ trễ là trung bình mili giây trên các event thuộc cửa sổ. `EventEnqueuedUtcTime` là lúc Event Hubs nhận event; `EventProcessedUtcTime` là lúc Stream Analytics xử lý event. Đây là metadata của input, không phải trường trong payload của producer. `avg_end_to_end_ms` kết thúc ở lúc ASA xử lý event; nó không đo thời gian ghi/commit vào output sink.
+
+| Cột | Kiểu | Bắt buộc | Ý nghĩa |
+|---|---|---|---|
+| `window_end` | datetime (UTC) | có | Thời điểm kết thúc cửa sổ đo |
+| `event_count` | int64 | có | Số event được tính trong cửa sổ |
+| `avg_producer_to_eventhub_ms` | float64 | có | Trung bình từ `sent_time` đến `EventEnqueuedUtcTime` |
+| `avg_eventhub_to_asa_ms` | float64 | có | Trung bình từ `EventEnqueuedUtcTime` đến thời điểm Stream Analytics xử lý event |
+| `avg_end_to_end_ms` | float64 | có | Trung bình từ `sent_time` đến thời điểm Stream Analytics xử lý event |
 
 ## 4. Mô hình star schema (Synapse, cho Power BI lịch sử)
 

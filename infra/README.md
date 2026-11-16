@@ -15,6 +15,7 @@ Tạo tay một lần, Terraform không quản lý: resource group `rg-megasale-
 | `sql.tf` | SQL server `sql-megasale-dev` + DB `sqldb-megasale-dev` bản free offer (hết hạn mức thì tự pause đến tháng sau, không tính tiền) |
 | `synapse.tf` | Workspace `synw-megasale-dev`, chỉ dùng serverless |
 | `stream_analytics.tf` | Job `asa-megasale-dev` (StandardV2, 1/3 SU), query từ `stream/query.asaql`. Input `events` (Event Hubs), reference `price_list`, `provinces`. Outputs `raw_archive` (Parquet), `kpi_1min` (JSON) vào container `lake`, `kpi_1min_sql` / `pipeline_latency` vào Azure SQL, và `kpi_1min_powerbi` vào workspace `Megasale-powerBI` bằng managed identity |
+| `functions.tf` | Function App `func-megasale-dev` (Linux Consumption, Python 3.12) + plan `asp-megasale-dev` + storage riêng `stmegasalefunc`. Không tính tiền khi rảnh nên để chạy thường trực |
 
 Tên theo mẫu `<loại>-megasale-dev`, dùng `local.name`. SQL free offer đi qua provider `azapi` vì `azurerm` chưa hỗ trợ.
 
@@ -61,6 +62,12 @@ terraform plan
 
 - **Synapse serverless** (`synw-megasale-dev-ondemand.sql.azuresynapse.net`): quyền là Synapse RBAC, Terraform cấp trong `synapse.tf` (Sơn: Synapse Administrator, thành viên: Synapse SQL Administrator). Admin Entra của workspace **không đủ** để đăng nhập serverless; mặc định chỉ app CI (người tạo workspace) có role.
 - **Grafana → SQL DB:** app `grafana-megasale-reader`, không có role Azure, secret hạn ngắn nằm trong `.env`. Grafana chạy local nên không dùng được Managed Identity; Current User thì không chạy được alert.
+
+- **Function → Telegram:** token bot và chat ID không nằm trong Git hay Terraform (Terraform bỏ qua 2 key này). Sau lần `apply` đầu, người giữ bot đặt tay một lần, giá trị lấy từ `.env`:
+
+  ```powershell
+  az functionapp config appsettings set -g rg-megasale-dev -n func-megasale-dev --settings TELEGRAM_BOT_TOKEN=<token> TELEGRAM_CHAT_ID=<chat id> -o none
+  ```
 
 - **Đọc data lake:** cần role Storage Blob Data Reader, Sơn cấp tay một lần ở mức resource group (không mất khi destroy/apply).
 
