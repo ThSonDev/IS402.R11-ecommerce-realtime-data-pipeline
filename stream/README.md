@@ -23,7 +23,7 @@ Input alias `events` đọc bản replay của `test/events_sample.json`. Query 
 
 ## Chạy trên cloud
 
-Job `asa-megasale-dev` dựng bằng Terraform (`infra/stream_analytics.tf`), đọc thẳng `query.asaql`. Alias trên cloud: input `events`, reference `price_list`, `provinces`; output `raw_archive` (Parquet) và `kpi_1min` (JSON tạm, chuyển sang SQL sau #35), cả hai vào container `lake` theo `<output>/yyyy/MM/dd/HH`. Đổi tên alias trong query thì phải đổi cả trong Terraform. Cách bật/tắt job xem `infra/README.md`.
+Job `asa-megasale-dev` dựng bằng Terraform (`infra/stream_analytics.tf`), đọc thẳng `query.asaql`. Alias trên cloud: input `events`, reference `price_list`, `provinces`; outputs `raw_archive` (Parquet) và `kpi_1min` (JSON) vào container `lake` theo `<output>/yyyy/MM/dd/HH`, `kpi_1min_sql` và `pipeline_latency` vào Azure SQL DB, cùng `kpi_1min_powerbi` vào workspace Power BI. Các output KPI dùng chung hợp đồng cột trong `docs/event-schema.md`. Đổi tên alias trong query thì phải đổi cả trong Terraform. Cách tạo bảng/quyền và bật/tắt job xem `infra/README.md`.
 
 ### Chính sách event-time trên cloud (#37)
 
@@ -31,4 +31,4 @@ Query cloud dùng `TIMESTAMP BY event_time`; cấu hình trong Terraform là lat
 
 `stream/JobConfig.json` có late-arrival tolerance 1.800 giây cho replay tĩnh local; đó là cấu hình riêng cho file quá khứ và không phải cấu hình cloud.
 
-Kết quả chạy cloud và cách đọc metric được ghi tại [docs/thang-event-time-policy.md](../docs/thang-event-time-policy.md). Thử nghiệm dùng baseline `main` hiện có; baseline này đọc `[events]` ở hai câu query riêng, vì vậy metric ASA có thể đếm một event ở cả hai nhánh. Branch PR #82 đã đổi sang một input stream dùng chung.
+Kết quả chạy cloud và cách đọc metric được ghi tại [docs/thang-event-time-policy.md](../docs/thang-event-time-policy.md). Lượt test dùng baseline `main` trước khi PR #82 merge, khi query còn hai câu `FROM [events]`; số `LateInputEvents` vì vậy không được coi là số event late duy nhất. Query trên `main` sau PR #82 dùng chung một CTE từ input `events`.
