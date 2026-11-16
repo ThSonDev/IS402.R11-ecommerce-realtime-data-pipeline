@@ -1,58 +1,35 @@
--- First local KPI query: one-minute counts and GMV by channel and province.
--- This query is the starter KPI only; fraud rules are added in a later task.
-SELECT
-    System.Timestamp() AS window_end,
-    channel,
-    province_code,
-    SUM(CASE WHEN event_type = 'view' THEN CAST(1 AS bigint) ELSE CAST(0 AS bigint) END) AS view_count,
-    SUM(CASE WHEN event_type = 'cart' THEN CAST(1 AS bigint) ELSE CAST(0 AS bigint) END) AS cart_count,
-    SUM(CASE WHEN event_type = 'purchase' THEN CAST(1 AS bigint) ELSE CAST(0 AS bigint) END) AS purchase_count,
-    COUNT(DISTINCT order_id) AS order_count,
-    SUM(CASE WHEN event_type = 'purchase' THEN price_vnd ELSE CAST(0 AS bigint) END) AS gmv_vnd
-INTO [kpi_1min]
-FROM [events] TIMESTAMP BY event_time
-GROUP BY
-    channel,
-    province_code,
-    TUMBLINGWINDOW(minute, 1);
+-- Read the Event Hubs stream once and fan out from this shared stream.
+-- The same CTE is also the base for rules added in issues #61 and #62.
+WITH ev AS (
+    SELECT
+        *,
+        GetMetadataPropertyValue([events], '[EventHub].[EventEnqueuedUtcTime]') AS EventEnqueuedUtcTime,
+        GetMetadataPropertyValue([events], '[EventHub].[EventProcessedUtcTime]') AS EventProcessedUtcTime
+    FROM [events] TIMESTAMP BY event_time
+),
+kpi AS (
+    SELECT
+        System.Timestamp() AS window_end,
+        channel,
+        province_code,
+        SUM(CASE WHEN event_type = 'view' THEN CAST(1 AS bigint) ELSE CAST(0 AS bigint) END) AS view_count,
+        SUM(CASE WHEN event_type = 'cart' THEN CAST(1 AS bigint) ELSE CAST(0 AS bigint) END) AS cart_count,
+        SUM(CASE WHEN event_type = 'purchase' THEN CAST(1 AS bigint) ELSE CAST(0 AS bigint) END) AS purchase_count,
+        COUNT(DISTINCT order_id) AS order_count,
+        SUM(CASE WHEN event_type = 'purchase' THEN CAST(price_vnd AS bigint) ELSE CAST(0 AS bigint) END) AS gmv_vnd
+    FROM ev
+    GROUP BY
+        channel,
+        province_code,
+        TUMBLINGWINDOW(minute, 1)
+)
 
--- The same KPI contract also feeds SQL Database. The lake output above remains
--- the durable JSON copy; use a distinct alias for each ASA sink.
-SELECT
-    System.Timestamp() AS window_end,
-    channel,
-    province_code,
-    SUM(CASE WHEN event_type = 'view' THEN CAST(1 AS bigint) ELSE CAST(0 AS bigint) END) AS view_count,
-    SUM(CASE WHEN event_type = 'cart' THEN CAST(1 AS bigint) ELSE CAST(0 AS bigint) END) AS cart_count,
-    SUM(CASE WHEN event_type = 'purchase' THEN CAST(1 AS bigint) ELSE CAST(0 AS bigint) END) AS purchase_count,
-    COUNT(DISTINCT order_id) AS order_count,
-    SUM(CASE WHEN event_type = 'purchase' THEN price_vnd ELSE CAST(0 AS bigint) END) AS gmv_vnd
-INTO [kpi_1min_sql]
-FROM [events] TIMESTAMP BY event_time
-GROUP BY
-    channel,
-    province_code,
-    TUMBLINGWINDOW(minute, 1);
+-- One shared KPI aggregation feeds the lake, SQL Database, and Power BI.
+SELECT * INTO [kpi_1min] FROM kpi
+SELECT * INTO [kpi_1min_sql] FROM kpi
+SELECT * INTO [kpi_1min_powerbi] FROM kpi
 
--- Power BI real-time uses the same one-minute KPI contract.
-SELECT
-    System.Timestamp() AS window_end,
-    channel,
-    province_code,
-    SUM(CASE WHEN event_type = 'view' THEN CAST(1 AS bigint) ELSE CAST(0 AS bigint) END) AS view_count,
-    SUM(CASE WHEN event_type = 'cart' THEN CAST(1 AS bigint) ELSE CAST(0 AS bigint) END) AS cart_count,
-    SUM(CASE WHEN event_type = 'purchase' THEN CAST(1 AS bigint) ELSE CAST(0 AS bigint) END) AS purchase_count,
-    COUNT(DISTINCT order_id) AS order_count,
-    SUM(CASE WHEN event_type = 'purchase' THEN price_vnd ELSE CAST(0 AS bigint) END) AS gmv_vnd
-INTO [kpi_1min_powerbi]
-FROM [events] TIMESTAMP BY event_time
-GROUP BY
-    channel,
-    province_code,
-    TUMBLINGWINDOW(minute, 1);
-
--- Pipeline latency is averaged per event-time minute. The two Event Hubs
--- metadata timestamps are supplied by the Event Hubs input adapter.
+-- Pipeline latency is averaged per event-time minute.
 SELECT
     System.Timestamp() AS window_end,
     COUNT(*) AS event_count,
@@ -60,8 +37,8 @@ SELECT
     AVG(CAST(DATEDIFF(millisecond, EventEnqueuedUtcTime, EventProcessedUtcTime) AS float)) AS avg_eventhub_to_asa_ms,
     AVG(CAST(DATEDIFF(millisecond, CAST(sent_time AS datetime), EventProcessedUtcTime) AS float)) AS avg_end_to_end_ms
 INTO [pipeline_latency]
-FROM [events] TIMESTAMP BY event_time
-GROUP BY TUMBLINGWINDOW(minute, 1);
+FROM ev
+GROUP BY TUMBLINGWINDOW(minute, 1)
 
 -- Raw archive: every event as-is into the data lake (Parquet, by date/hour) for Synapse.
 SELECT
@@ -87,6 +64,6 @@ SELECT
     is_fraud,
     scenario,
     is_late,
-    GetMetadataPropertyValue([events], '[EventHub].[EventEnqueuedUtcTime]') AS EventEnqueuedUtcTime
+    EventEnqueuedUtcTime
 INTO [raw_archive]
-FROM [events] TIMESTAMP BY event_time;
+FROM ev;
