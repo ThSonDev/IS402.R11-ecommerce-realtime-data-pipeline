@@ -38,10 +38,22 @@ Baseline `main` chỉ có `raw_archive` và `kpi_1min`; lượt chạy này khô
 
 ASA metrics trong lượt chạy ghi nhận `LateInputEvents=204` và `DroppedOrAdjustedEvents=16`; metric `Errors` và `DeserializationError` không có giá trị khác 0. Số `LateInputEvents` lớn hơn 102 event late trong lake; baseline `main` tham chiếu `[events]` trong hai câu `FROM` riêng nên hai nhánh có thể cùng góp vào metric. Chưa coi 204 là số event late duy nhất; cần đối chiếu lại khi chạy query một input sau khi PR #82 được triển khai.
 
-`DroppedOrAdjustedEvents` là metric cho event sai thứ tự bị loại hoặc điều chỉnh; job cấu hình `Adjust`. Số liệu xác nhận chính sách đã có tác dụng trên cloud, nhưng muốn định lượng chính xác trên query một nhánh sau khi PR #82 merge thì cần chạy lại cùng batch với cấu hình đó.
+`DroppedOrAdjustedEvents` gộp event bị loại và event được điều chỉnh nên không cho biết riêng từng loại. Muốn định lượng chính xác sau khi query một input của PR #82 được triển khai lên job cloud, cần chạy lại cùng batch và đối chiếu output.
+
+## Kiểm chứng local
+
+Ngày 17/11/2026, chạy `stream/query.asaql` trong VS Code ASA Tools bằng **Local input and local output** với file replay do `prepare_local_events.ps1` tạo. Job dừng bình thường sau 40 giây và tạo đủ output.
+
+- `verify_local_kpi.ps1`: **1.036 input events**, **580/580 nhóm phút × sàn × tỉnh**, **0 mismatch**; 995 view, 16 cart, 25 purchase, GMV `177062417` VND.
+- Ba output `kpi_1min`, `kpi_1min_sql`, `kpi_1min_powerbi` đều có 580 dòng giống hệt nhau; `gmv_vnd` được serialize dưới dạng integer.
+- `raw_archive`: 1.036 dòng. `pipeline_latency`: 31 window, tổng `event_count` là 1.036.
+- ASA Tools cảnh báo time policy không được hỗ trợ với static input. Do input local không có Event Hubs metadata, các trường enqueued/processed time và latency tương ứng là null; phần này chỉ được xác minh bằng cloud run.
+
+Terraform CLI **1.17.2**: `terraform fmt -check`, `terraform init -backend=false` và `terraform validate` đều thành công. Python test: **27 passed**; Ruff: **All checks passed**.
 
 ## Giới hạn của phép đo
 
 - Mẫu throughput ngắn, chỉ chứng minh producer giao được các đợt đã thử; không xác định giới hạn sustained của Event Hubs hoặc ASA.
 - Cloud run dùng `main` theo yêu cầu. Không có SQL/Power BI/`pipeline_latency` sink trên baseline đó.
-- Local ASA Tools và Terraform CLI không được cài trên máy tại lượt kiểm tra; project pytest 27/27 pass và script chuẩn bị local replay tạo được đủ 1.036 event, nhưng không chạy được ASA local simulator.
+- Local run kiểm tra kết quả query và hình dạng dữ liệu, không kiểm chứng việc ghi thật vào SQL hoặc Power BI.
+- `LateInputEvents=204` không được xem là 204 event late duy nhất; `DroppedOrAdjustedEvents=16` cũng không tách riêng drop với adjust. Cần lượt cloud mới trên query đã merge để định lượng các metric đó chính xác hơn.
