@@ -38,9 +38,42 @@ Phân vùng giờ đó có 57 file Parquet, tổng 30,865,512 byte (29.44 MiB), 
 
 ## Gộp file nhỏ bằng CETAS
 
-Chưa chạy CETAS vì tài khoản hiện có Storage Blob Data Reader nhưng không có quyền ghi vào container `lake`. Thử upload file kiểm tra vào `lake/benchmark/` bị Azure từ chối; file kiểm tra cục bộ đã được dọn và không để lại file kiểm tra trên storage. Không chạy CETAS bằng quyền managed identity khác và không ghi đè lên `raw_archive`.
+Ngày 18/11/2026, dùng Synapse serverless CETAS để xuất partition `2026/11/15/09` từ `silver.events_raw` sang một prefix tạm riêng trong `lake/benchmark/`. Nguồn có 57 file Parquet, tổng 30,865,512 byte. Kết quả CETAS:
 
-Để hoàn tất phép đo trước/sau gộp, Sơn cần cấp `Storage Blob Data Contributor` cho tài khoản Thắng ở phạm vi container `lake` (hoặc ACL tương đương chỉ cho thư mục benchmark). Khi được cấp, chạy CETAS ra thư mục benchmark riêng rồi đối chiếu số file, tổng byte và lượng scan với phân vùng nguồn.
+| Đo lường | Partition nguồn | CETAS tạm |
+|---|---:|---:|
+| Số file Parquet | 57 | 16 |
+| Tổng dung lượng file | 30,865,512 byte | 11,054,823 byte |
+| `COUNT_BIG(*)` | 108,735 | 108,735 |
+| `COUNT(DISTINCT event_id)` | 108,735 | 108,735 |
+| View / cart / purchase | 104,532 / 1,899 / 2,304 | 104,532 / 1,899 / 2,304 |
+| GMV purchase | 19,812,462,885 VND | 19,812,462,885 VND |
+| Data scanned khi chạy riêng truy vấn đếm | 4 MB | 2 MB |
+
+Trong lần chạy này CETAS giảm dung lượng 64.2% và số file Parquet 71.9%. CETAS vẫn sinh 16 file do xuất song song, không tạo một file duy nhất. Lệnh CETAS đọc 35 MB và ghi 12 MB theo thống kê Synapse; các truy vấn đếm nguồn/đích được chạy riêng để so lượng scan. Phép đo cho thấy lợi ích trên partition này, không đảm bảo mọi partition sẽ có cùng tỉ lệ.
+
+Mẫu lệnh (mỗi lần chạy phải dùng tên bảng và `LOCATION` mới, rỗng):
+
+```sql
+CREATE EXTERNAL FILE FORMAT [ParquetBenchmark]
+WITH (FORMAT_TYPE = PARQUET);
+
+CREATE EXTERNAL TABLE [dbo].[EventsCompacted]
+WITH (
+    LOCATION = 'benchmark/<unique-run>/',
+    DATA_SOURCE = [MegasaleLake],
+    FILE_FORMAT = [ParquetBenchmark]
+)
+AS
+SELECT *
+FROM [silver].[events_raw]
+WHERE partition_year = 2026
+  AND partition_month = 11
+  AND partition_day = 15
+  AND partition_hour = 9;
+```
+
+Sau khi kiểm tra row count/aggregates và đo dung lượng/scan, xóa external table/file format tạm rồi xóa đúng prefix đã tạo. Lượt thử này đã được dọn: prefix CETAS còn 0 object, còn 57 file nguồn trong `raw_archive`. Không ghi vào hay xóa dữ liệu `raw_archive`.
 
 ## Cách lặp lại phép đo local
 
