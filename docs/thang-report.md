@@ -14,9 +14,9 @@ Producer phát event JSON có `event_time` là thời điểm nghiệp vụ sau 
 
 KPI nhóm event theo `channel` và `province_code` trong tumbling window một phút. Tumbling window tạo các khoảng liền nhau, không chồng lấn; một event chỉ thuộc một window. Output được gắn `window_end` qua `System.Timestamp()`.
 
-Event có thể đến trễ so với `event_time` hoặc không đúng thứ tự. Cấu hình được đề xuất trong PR #84 đặt late-arrival tolerance 60 giây và out-of-order tolerance 60 giây; policy out-of-order là `Adjust`. Hai ngưỡng cho ASA thời gian chờ event trễ/sai thứ tự trong giới hạn thử nghiệm. Static input của ASA Tools không kiểm chứng được policy cloud; cần thử với Event Hubs.
+Event có thể đến trễ so với `event_time` hoặc không đúng thứ tự. Cấu hình cloud đã áp dụng là late-arrival tolerance 60 giây và out-of-order tolerance 60 giây; policy out-of-order là `Adjust`. Hai ngưỡng cho ASA thời gian xử lý các event trễ/sai thứ tự trong giới hạn đã thử. Static input của ASA Tools không kiểm chứng được policy cloud; kết quả dưới đây đến từ Event Hubs.
 
-Cloud test trên baseline `c74ce16` ghi nhận 2,000 event trong bài late-arrival; producer đánh dấu 102 event đến trễ và chúng vẫn xuất hiện trong `raw_archive`. Baseline này dùng tolerance 5/0 giây trước PR #82, nên là kết quả lịch sử chứ không phải kết quả của cấu hình đề xuất trong PR #84. Sau khi #82 merge, Sơn báo cáo bài thử `--late-rate 0.05`: KPI khớp khi so với `raw_archive` theo payload `event_time`, và `DroppedOrAdjustedEvents = 0`. Đây là kết quả được báo cáo từ buổi chạy cloud; tài liệu này không ghi số lượng batch vì chưa có log xác nhận kèm theo. Phép đối chiếu này không tự xác minh việc ghi thành công vào SQL, Power BI hay output `pipeline_latency`; các sink đó cần log cloud riêng. Chỉ số `DroppedOrAdjustedEvents` gộp event bị bỏ và event được điều chỉnh, nên chỉ số 0 cho biết batch đó không có event nào thuộc hai nhóm này.
+Cloud test trên baseline `c74ce16` ghi nhận 2,000 event trong bài late-arrival; producer đánh dấu 102 event đến trễ và chúng vẫn xuất hiện trong `raw_archive`. Baseline này dùng tolerance 5/0 giây trước PR #82, nên là kết quả lịch sử. Bài cloud sau #82 dùng cấu hình 60/60 giây và producer `--speed 4 --late-rate 0.05 --late-delay 50`: gửi 76,790 event, trong đó 3,803 event trễ, không lỗi. `raw_archive` có 76,790 dòng với 76,790 ID duy nhất và 3,803 dòng `is_late=true`. KPI SQL so với raw gom theo payload `event_time` khớp tuyệt đối ở 16/16 phút về view, cart, purchase và GMV; tổng GMV hai bên là 13,943,590,057 VND. ASA metrics `DroppedOrAdjustedEvents`, `LateInputEvents` và `ConversionErrors` đều bằng 0. Phép đối chiếu này xác minh KPI và lake cho batch đó, không tự xác minh sink Power BI.
 
 Đồ án dự kiến phát hiện spike/dip trên chuỗi số đơn theo phút bằng `AnomalyDetection_SpikeAndDip`. ASA yêu cầu chuỗi đầu vào lấy mẫu đều; vì vậy cần tổng hợp theo tumbling window trước khi áp dụng anomaly function. Ngưỡng và kết quả đánh giá từng luật sẽ được cập nhật cùng kết quả các issue #61, #62 và #68; không dùng `is_fraud` hoặc `scenario` làm đầu vào phát hiện vì đây là nhãn đánh giá.
 
@@ -28,6 +28,10 @@ Cloud test trên baseline `c74ce16` ghi nhận 2,000 event trong bài late-arriv
 4. **Làm sạch và phục vụ lịch sử:** Synapse serverless đọc Parquet qua external data source `MegasaleLake`. `silver.events_raw` ép kiểu và giữ thông tin phân vùng; `silver.events` loại bản ghi thiếu khóa/thời gian hợp lệ và giữ bản nhận mới nhất cho mỗi `event_id`. Cloud test với run ngày 15/11/2026, 09:00 UTC, cho 108,735 dòng thô và 108,735 dòng silver; số này khớp log producer của run. Lớp gold star schema và triển khai SQL tự động thuộc issue #64.
 
 Luồng truy vấn và lệnh kết nối được ghi trong `stream/README.md`, `infra/README.md`, `warehouse/README.md` và `scripts/README.md`. ASA job được giữ ở trạng thái Stopped khi không đo để tránh tính phí theo giờ.
+
+### Đo độ trễ pipeline trên cloud
+
+Trong một đợt chạy sạch kéo dài 5 phút với 24,991 event, độ trễ trung bình theo event là khoảng 320 ms từ producer đến Event Hubs, 140 ms từ Event Hubs đến ASA và 476 ms từ lúc gửi đến khi ASA xử lý. KPI được xuất hiện sau khoảng 1–3 phút do tumbling window một phút kết hợp ngưỡng chờ 60/60 giây; đây là thời gian chờ output theo window, khác với độ trễ xử lý trung bình theo từng event.
 
 ## 3.4. Tối ưu lưu trữ và tốc độ đọc
 
@@ -48,7 +52,7 @@ Truy vấn so sánh gồm tổng số dòng, số `user_session` khác nhau, s�
 
 Trên lake cloud, truy vấn toàn bộ Parquet `raw_archive` quét 47 MB. Một truy vấn lọc đúng phân vùng `2026/11/15/09` trên `silver.events_raw` trả 108,735 event và quét 16 MB. Đây là so sánh giữa truy vấn cùng một lake; thời gian SQLCMD bao gồm thời gian kết nối nên báo cáo lượng scan do Synapse trả về, không dùng wall-clock SQLCMD làm latency của engine.
 
-Phân vùng 09:00 UTC gồm 57 file Parquet, tổng 30,865,512 byte (29.44 MiB), trung bình khoảng 0.54 MiB/file. CETAS có thể ghi kết quả vào một vùng mới để so sánh số file, dung lượng và scan trước/sau. Chưa chạy bước ghi CETAS: tài khoản hiện chỉ có Storage Blob Data Reader; cần quyền ghi vào vùng benchmark của container `lake`. Không ghi đè dữ liệu `raw_archive`.
+Phân vùng 09:00 UTC gồm 57 file Parquet, tổng 30,865,512 byte (29.44 MiB), trung bình khoảng 0.54 MiB/file. CETAS serverless xuất thử cùng partition vào `lake/benchmark/`: kết quả có 16 file Parquet, tổng 11,054,823 byte (10.54 MiB), giảm 64.2% dung lượng và 71.9% số file. `COUNT_BIG`, distinct event ID, view/cart/purchase và GMV đều khớp nguồn; truy vấn đếm riêng quét 4 MB ở nguồn và 2 MB ở CETAS. Lệnh CETAS đọc 35 MB và ghi 12 MB. CETAS tạo nhiều file song song nên không gộp thành một file duy nhất. Đã xóa đúng prefix benchmark và external table/file format tạm sau khi đo; xác nhận 57 file nguồn trong `raw_archive` vẫn còn.
 
 ### Nguồn tham khảo
 
