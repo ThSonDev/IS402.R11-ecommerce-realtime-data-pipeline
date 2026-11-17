@@ -27,7 +27,7 @@ Job `asa-megasale-dev` dựng bằng Terraform (`infra/stream_analytics.tf`), đ
 
 ### Chính sách event-time trên cloud (#37)
 
-Query cloud dùng `TIMESTAMP BY event_time`; cấu hình trong Terraform là late-arrival tolerance **60 giây**, out-of-order tolerance **60 giây**, policy **Adjust**. Hai ngưỡng cho ASA thời gian nhận event trễ/sai thứ tự trước khi phải áp dụng policy điều chỉnh. Trong bài kiểm tra sau #82 với `--late-rate 0.05`, KPI khớp khi đối chiếu với `raw_archive` theo payload `event_time`, và `DroppedOrAdjustedEvents = 0`. Payload `event_time` được giữ trong raw để truy vết.
+Query cloud dùng `TIMESTAMP BY event_time`; cấu hình đã áp dụng trong Terraform là late-arrival tolerance **60 giây**, out-of-order tolerance **60 giây**, policy **Adjust**. Bài kiểm tra sau #82 dùng `--speed 4 --late-rate 0.05 --late-delay 50`: producer gửi 76,790 event, gồm 3,803 event trễ, không lỗi. `raw_archive` có đủ 76,790 dòng và ID duy nhất; 3,803 dòng mang `is_late=true`. KPI SQL so với raw gom theo `event_time` khớp ở 16/16 phút; GMV hai phía đều 13,943,590,057 VND. ASA metrics `DroppedOrAdjustedEvents`, `LateInputEvents` và `ConversionErrors` đều bằng 0. Payload `event_time` được giữ trong raw để truy vết.
 
 `stream/JobConfig.json` có late-arrival tolerance 1,800 giây cho replay tĩnh local; đó là cấu hình riêng cho file quá khứ và không phải cấu hình cloud.
 

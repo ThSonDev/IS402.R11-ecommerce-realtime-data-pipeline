@@ -7,7 +7,7 @@ Cloud job dùng `TIMESTAMP BY event_time` với các giá trị trong `infra/str
 - Late-arrival tolerance: **60 giây**.
 - Out-of-order tolerance: **60 giây**, policy **Adjust**.
 
-Hai ngưỡng 60 giây cho ASA thời gian nhận các event trễ/sai thứ tự đã dùng trong bài thử. Theo kết quả Sơn kiểm tra sau khi #82 merge, bài chạy với `--late-rate 0.05` cho KPI khớp khi đối chiếu với `raw_archive` theo `event_time`, và `DroppedOrAdjustedEvents = 0`. Vì vậy phép thử không ghi nhận event bị drop hoặc timestamp bị điều chỉnh trong batch đó. Trường payload `event_time` vẫn được giữ trong raw để đối chiếu.
+Hai ngưỡng 60 giây cho ASA thời gian nhận event trễ/sai thứ tự đã dùng trong bài thử cloud sau #82. Cấu hình producer là `--speed 4 --late-rate 0.05 --late-delay 50`. Producer gửi 76,790 event, trong đó 3,803 event trễ; không có lỗi. `raw_archive` có 76,790 dòng với 76,790 `event_id` khác nhau và 3,803 dòng `is_late=true`. Đối chiếu `kpi_1min` trong SQL với raw gom theo payload `event_time` cho kết quả khớp tuyệt đối ở cả 16/16 phút về view, cart, purchase và GMV; tổng GMV hai phía là 13,943,590,057 VND. ASA metrics: `DroppedOrAdjustedEvents=0`, `LateInputEvents=0`, `ConversionErrors=0`. Payload `event_time` được giữ trong raw để đối chiếu.
 
 ## Kết quả chạy cloud
 
