@@ -1,0 +1,446 @@
+{
+  "uid": "megasale-war-room",
+  "title": "Mega Sale war room",
+  "tags": [
+    "megasale"
+  ],
+  "timezone": "browser",
+  "editable": true,
+  "refresh": "1m",
+  "schemaVersion": 39,
+  "version": 2,
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "type": "stat",
+      "title": "GMV (VND)",
+      "datasource": {
+        "type": "mssql",
+        "uid": "megasale-sql"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mssql",
+            "uid": "megasale-sql"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT SUM(gmv_vnd) AS gmv FROM dbo.kpi_1min WHERE $__timeFilter(window_end)"
+        }
+      ],
+      "id": 1
+    },
+    {
+      "type": "stat",
+      "title": "Đơn hàng",
+      "datasource": {
+        "type": "mssql",
+        "uid": "megasale-sql"
+      },
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mssql",
+            "uid": "megasale-sql"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT SUM(order_count) AS orders FROM dbo.kpi_1min WHERE $__timeFilter(window_end)"
+        }
+      ],
+      "id": 2
+    },
+    {
+      "type": "stat",
+      "title": "Event",
+      "datasource": {
+        "type": "mssql",
+        "uid": "megasale-sql"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mssql",
+            "uid": "megasale-sql"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT SUM(view_count + cart_count + purchase_count) AS events FROM dbo.kpi_1min WHERE $__timeFilter(window_end)"
+        }
+      ],
+      "id": 3
+    },
+    {
+      "type": "stat",
+      "title": "Độ trễ gửi → ASA (TB theo event)",
+      "datasource": {
+        "type": "mssql",
+        "uid": "megasale-sql"
+      },
+      "gridPos": {
+        "x": 18,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mssql",
+            "uid": "megasale-sql"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT SUM(avg_end_to_end_ms * event_count) / NULLIF(SUM(event_count), 0) AS e2e_ms FROM dbo.pipeline_latency WHERE $__timeFilter(window_end)"
+        }
+      ],
+      "id": 4
+    },
+    {
+      "type": "timeseries",
+      "title": "Đơn hàng / phút",
+      "datasource": {
+        "type": "mssql",
+        "uid": "megasale-sql"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mssql",
+            "uid": "megasale-sql"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "SELECT window_end AS time, SUM(order_count) AS orders FROM dbo.kpi_1min WHERE $__timeFilter(window_end) GROUP BY window_end ORDER BY 1"
+        }
+      ],
+      "id": 5
+    },
+    {
+      "type": "timeseries",
+      "title": "GMV / phút theo sàn (VND)",
+      "datasource": {
+        "type": "mssql",
+        "uid": "megasale-sql"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 4,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mssql",
+            "uid": "megasale-sql"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "SELECT window_end AS time, channel AS metric, SUM(gmv_vnd) AS gmv FROM dbo.kpi_1min WHERE $__timeFilter(window_end) GROUP BY window_end, channel ORDER BY 1"
+        }
+      ],
+      "id": 6
+    },
+    {
+      "type": "timeseries",
+      "title": "Phễu / phút: view, cart, purchase",
+      "datasource": {
+        "type": "mssql",
+        "uid": "megasale-sql"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 12,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mssql",
+            "uid": "megasale-sql"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "SELECT window_end AS time, SUM(view_count) AS [view], SUM(cart_count) AS cart, SUM(purchase_count) AS purchase FROM dbo.kpi_1min WHERE $__timeFilter(window_end) GROUP BY window_end ORDER BY 1"
+        }
+      ],
+      "id": 7
+    },
+    {
+      "type": "timeseries",
+      "title": "Độ trễ pipeline (ms)",
+      "datasource": {
+        "type": "mssql",
+        "uid": "megasale-sql"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 12,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mssql",
+            "uid": "megasale-sql"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "SELECT window_end AS time, avg_producer_to_eventhub_ms AS [producer → Event Hubs], avg_eventhub_to_asa_ms AS [Event Hubs → ASA], avg_end_to_end_ms AS [gửi → ASA] FROM dbo.pipeline_latency WHERE $__timeFilter(window_end) ORDER BY 1"
+        }
+      ],
+      "id": 8
+    },
+    {
+      "type": "barchart",
+      "title": "Top 10 tỉnh theo GMV (VND)",
+      "datasource": {
+        "type": "mssql",
+        "uid": "megasale-sql"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 20,
+        "w": 24,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "xField": "province_code",
+        "showValue": "auto",
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mssql",
+            "uid": "megasale-sql"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT TOP 10 province_code, SUM(gmv_vnd) AS gmv FROM dbo.kpi_1min WHERE $__timeFilter(window_end) GROUP BY province_code ORDER BY gmv DESC"
+        }
+      ],
+      "id": 9
+    }
+  ]
+}
