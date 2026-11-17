@@ -27,8 +27,8 @@ Job `asa-megasale-dev` dựng bằng Terraform (`infra/stream_analytics.tf`), đ
 
 ### Chính sách event-time trên cloud (#37)
 
-Query cloud dùng `TIMESTAMP BY event_time`; cấu hình trong Terraform là late-arrival tolerance **5 giây**, out-of-order tolerance **0 giây**, policy **Adjust**. Chọn cửa sổ trễ ngắn để watermark và KPI một phút không phải chờ lâu; event đến trễ hoặc sai thứ tự được giữ lại nhưng `System.Timestamp()` có thể bị điều chỉnh sang thời gian gần lúc nhận. Payload `event_time` vẫn là giá trị producer gửi, nên dùng `System.Timestamp()` nếu cần phân nhóm theo thời gian ASA đã điều chỉnh.
+Query cloud dùng `TIMESTAMP BY event_time`; cấu hình trong Terraform là late-arrival tolerance **60 giây**, out-of-order tolerance **60 giây**, policy **Adjust**. Hai ngưỡng cho ASA thời gian nhận event trễ/sai thứ tự trước khi phải áp dụng policy điều chỉnh. Trong bài kiểm tra sau #82 với `--late-rate 0.05`, KPI khớp khi đối chiếu với `raw_archive` theo payload `event_time`, và `DroppedOrAdjustedEvents = 0`. Payload `event_time` được giữ trong raw để truy vết.
 
-`stream/JobConfig.json` có late-arrival tolerance 1.800 giây cho replay tĩnh local; đó là cấu hình riêng cho file quá khứ và không phải cấu hình cloud.
+`stream/JobConfig.json` có late-arrival tolerance 1,800 giây cho replay tĩnh local; đó là cấu hình riêng cho file quá khứ và không phải cấu hình cloud.
 
-Kết quả chạy cloud và cách đọc metric được ghi tại [docs/thang-event-time-policy.md](../docs/thang-event-time-policy.md). Lượt test dùng baseline `main` trước khi PR #82 merge, khi query còn hai câu `FROM [events]`; số `LateInputEvents` vì vậy không được coi là số event late duy nhất. Query trên `main` sau PR #82 dùng chung một CTE từ input `events`.
+Kết quả chạy cloud và cách đọc metric được ghi tại [docs/event-time-policy.md](../docs/event-time-policy.md). Lượt baseline trước PR #82 dùng tolerance 5/0 giây và query còn hai câu `FROM [events]`; số `LateInputEvents` trong lượt đó không phải số event late duy nhất. Query sau PR #82 dùng chung một CTE từ input `events`.
