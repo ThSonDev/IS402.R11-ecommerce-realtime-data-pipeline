@@ -1,0 +1,10 @@
+apiVersion: 1
+providers:
+  - name: megasale
+    folder: Megasale
+    type: file
+    # Edit in the UI, then export the JSON back into dashboards/grafana/dashboards/.
+    allowUiUpdates: true
+    updateIntervalSeconds: 10
+    options:
+      path: ${MEGASALE_GRAFANA_DASHBOARDS}
