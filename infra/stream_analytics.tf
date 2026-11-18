@@ -12,9 +12,10 @@ resource "azurerm_stream_analytics_job" "main" {
   data_locale         = "en-US"
   output_error_policy = "Stop"
 
-  # Event time policy: Thắng finalizes these in #37.
-  events_late_arrival_max_delay_in_seconds = 5
-  events_out_of_order_max_delay_in_seconds = 0
+  # Allow the tested 60-second late and out-of-order window before ASA applies
+  # Adjust; see docs/event-time-policy.md.
+  events_late_arrival_max_delay_in_seconds = 60
+  events_out_of_order_max_delay_in_seconds = 60
   events_out_of_order_policy               = "Adjust"
 
   transformation_query = file("${path.module}/../stream/query.asaql")
