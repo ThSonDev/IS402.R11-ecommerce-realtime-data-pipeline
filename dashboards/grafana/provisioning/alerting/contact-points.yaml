@@ -1,0 +1,11 @@
+# Same Telegram bot and group as the Azure Function (token and chat ID from .env).
+apiVersion: 1
+contactPoints:
+  - orgId: 1
+    name: telegram-oncall
+    receivers:
+      - uid: telegram-oncall
+        type: telegram
+        settings:
+          bottoken: ${TELEGRAM_BOT_TOKEN}
+          chatid: ${TELEGRAM_CHAT_ID}

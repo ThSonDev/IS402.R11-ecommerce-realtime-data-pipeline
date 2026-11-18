@@ -1,0 +1,20 @@
+# Azure SQL DB (Entra-only) via the read-only app grafana-megasale-reader.
+# Values come from environment variables set on the Grafana service (setup-windows.ps1).
+apiVersion: 1
+datasources:
+  - name: megasale-sql
+    uid: megasale-sql
+    type: mssql
+    url: sql-megasale-dev.database.windows.net:1433
+    isDefault: true
+    jsonData:
+      database: sqldb-megasale-dev
+      encrypt: 'true'
+      authenticationType: Azure AD Authentication
+      azureCredentials:
+        authType: clientsecret
+        azureCloud: AzureCloud
+        tenantId: ${GRAFANA_SQL_TENANT_ID}
+        clientId: ${GRAFANA_SQL_CLIENT_ID}
+    secureJsonData:
+      azureClientSecret: ${GRAFANA_SQL_CLIENT_SECRET}
