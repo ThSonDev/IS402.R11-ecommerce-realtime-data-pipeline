@@ -24,3 +24,11 @@ Input alias `events` đọc bản replay của `test/events_sample.json`. Query 
 ## Chạy trên cloud
 
 Job `asa-megasale-dev` dựng bằng Terraform (`infra/stream_analytics.tf`), đọc thẳng `query.asaql`. Alias trên cloud: input `events`, reference `price_list`, `provinces`; outputs `raw_archive` (Parquet) và `kpi_1min` (JSON) vào container `lake` theo `<output>/yyyy/MM/dd/HH`, `kpi_1min_sql` và `pipeline_latency` vào Azure SQL DB, cùng `kpi_1min_powerbi` vào workspace Power BI. Các output KPI dùng chung hợp đồng cột trong `docs/event-schema.md`. Đổi tên alias trong query thì phải đổi cả trong Terraform. Cách tạo bảng/quyền và bật/tắt job xem `infra/README.md`.
+
+### Chính sách event-time trên cloud (#37)
+
+Query cloud dùng `TIMESTAMP BY event_time`; cấu hình đã áp dụng trong Terraform là late-arrival tolerance **60 giây**, out-of-order tolerance **60 giây**, policy **Adjust**. Bài kiểm tra sau #82 dùng `--speed 4 --late-rate 0.05 --late-delay 50`: producer gửi 76,790 event, gồm 3,803 event trễ, không lỗi. `raw_archive` có đủ 76,790 dòng và ID duy nhất; 3,803 dòng mang `is_late=true`. KPI SQL so với raw gom theo `event_time` khớp ở 16/16 phút; GMV hai phía đều 13,943,590,057 VND. ASA metrics `DroppedOrAdjustedEvents`, `LateInputEvents` và `ConversionErrors` đều bằng 0. Payload `event_time` được giữ trong raw để truy vết.
+
+`stream/JobConfig.json` có late-arrival tolerance 1,800 giây cho replay tĩnh local; đó là cấu hình riêng cho file quá khứ và không phải cấu hình cloud.
+
+Kết quả chạy cloud và cách đọc metric được ghi tại [docs/event-time-policy.md](../docs/event-time-policy.md). Lượt baseline trước PR #82 dùng tolerance 5/0 giây và query còn hai câu `FROM [events]`; số `LateInputEvents` trong lượt đó không phải số event late duy nhất. Query sau PR #82 dùng chung một CTE từ input `events`.
