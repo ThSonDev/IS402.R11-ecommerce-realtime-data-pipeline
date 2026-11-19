@@ -72,6 +72,12 @@ Quy ước gửi:
 - Dữ liệu gốc phải dedup trước khi replay (có 100,519 dòng trùng hoàn toàn).
 - Tỷ giá USD → VND là một hằng số cố định, ghi rõ nguồn và ngày lấy tỷ giá trong báo cáo.
 
+Nhãn kịch bản và ground truth:
+
+- Event do kịch bản `bot`, `multi_account`, `price_glitch` chèn vào có `is_fraud = true` và `scenario` đúng tên. User giả có `user_id` từ 900,000,000 trở lên (user thật tối đa 579,969,851).
+- `payment_outage` không chèn event mà bỏ các purchase thật của một phương thức thanh toán trong một khoảng thời gian, nên không có event nào mang nhãn này. Ground truth của nó là khoảng thời gian.
+- Mỗi lần chạy với `--scenarios`, producer ghi một file JSON ground truth (mặc định `data/scenario_logs/`, hoặc cạnh file `--out`): `replay_start`, khoảng dữ liệu gốc, `speed` / `rate`, và mảng `scenarios`, mỗi phần tử gồm `scenario`, `start`, `end` (ISO 8601 UTC trên trục `event_time`), `entity_type` (`user`, `device`, `product`, `system`), `entity_ids` (khớp `entity_id` của `alerts`), số event chèn (`events`), cùng `payment_method` và `dropped_purchases` với `payment_outage`. Chi tiết tham số xem `producer/README.md`.
+
 ## 2. Reference data (Blob, Stream Analytics join vào)
 
 File CSV, nằm trong `stream/reference/`, đẩy lên Blob.
