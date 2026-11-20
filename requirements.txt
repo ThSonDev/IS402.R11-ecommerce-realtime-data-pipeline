@@ -7,6 +7,7 @@ duckdb==2.0.0
 confluent-kafka==2.11.0
 python-dotenv==1.1.1
 
-# dev: lint and tests (also run in CI)
+# dev: lint and tests (also run in CI); azure-functions lets tests call functions/fraud_alert
+azure-functions==1.26.0
 ruff==0.17.3
 pytest==9.2.0

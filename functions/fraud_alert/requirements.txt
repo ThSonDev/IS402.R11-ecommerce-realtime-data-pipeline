@@ -1,0 +1,2 @@
+# Installed by Azure at deploy time (--build-remote true).
+azure-functions==1.26.0
