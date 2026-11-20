@@ -1,0 +1,53 @@
+{
+  "replay_start": "2026-11-11T13:00:00.000Z",
+  "dataset_range": [
+    "2019-11-01T09:00:00",
+    "2019-11-01T09:30:00"
+  ],
+  "speed": 4.0,
+  "rate": null,
+  "sample_rate": 0.05,
+  "scenarios": [
+    {
+      "scenario": "bot",
+      "entity_type": "user",
+      "entity_ids": [
+        "900000000",
+        "900000001",
+        "900000002"
+      ],
+      "events": 60,
+      "start": "2026-11-11T13:00:30.000Z",
+      "end": "2026-11-11T13:01:30.000Z"
+    },
+    {
+      "scenario": "multi_account",
+      "entity_type": "device",
+      "entity_ids": [
+        "dev_2ec235002de4",
+        "dev_0d39e1dce23a"
+      ],
+      "voucher_code": "NEWMEMBER",
+      "events": 12,
+      "start": "2026-11-11T13:02:30.000Z",
+      "end": "2026-11-11T13:07:30.000Z"
+    },
+    {
+      "scenario": "price_glitch",
+      "entity_type": "product",
+      "entity_ids": [
+        "26201045",
+        "4500226",
+        "2501222"
+      ],
+      "ref_price_vnd": {
+        "26201045": 8383930,
+        "4500226": 11970360,
+        "2501222": 14745874
+      },
+      "events": 15,
+      "start": "2026-11-11T13:04:30.000Z",
+      "end": "2026-11-11T13:06:30.000Z"
+    }
+  ]
+}

@@ -11,9 +11,10 @@ Phụ trách: Minh
 | `reader.py` | `read_events(path, start, end)`: đọc một khoảng thời gian, bỏ dòng trùng, sắp xếp ổn định, trả từng dòng (dict). Đọc theo khúc 10,000 dòng |
 | `enrich.py` | `load_provinces(path)`, `enrich(row, provinces, event_time, sent_time)`: dòng gốc thành event 22 trường |
 | `timeshift.py` | `parse_raw`, `replay_time`, `to_iso_ms`: đặt thời gian 2019 lên trục replay |
-| `main.py` | Chương trình chính: replay một đoạn dữ liệu vào Kafka / Event Hubs theo `--speed` hoặc `--rate`, có thể gửi trễ một phần event (`--late-rate`) |
+| `scenarios.py` | 4 kịch bản gian lận / sự cố có nhãn: `bot`, `multi_account`, `price_glitch`, `payment_outage` |
+| `main.py` | Chương trình chính: replay một đoạn dữ liệu vào Kafka / Event Hubs (hoặc ra file) theo `--speed` hoặc `--rate`, có thể gửi trễ một phần event (`--late-rate`) và chèn kịch bản (`--scenarios`) |
 
-Test nằm trong [tests/](../tests/README.md). Chưa có: kịch bản gian lận.
+Test nằm trong [tests/](../tests/README.md).
 
 ## Cách chạy
 
@@ -58,9 +59,15 @@ docker compose up -d
 | `--sample-rate R` | không (mặc định 1.0) | Chỉ giữ toàn bộ event của tỷ lệ R user, để giảm lưu lượng mà không cắt vụn hành trình của user |
 | `--late-rate R` | không (mặc định 0, tắt) | Tỷ lệ event cố ý gửi trễ, gắn `is_late = true` |
 | `--late-delay S` | không (mặc định 60) | Thời gian giữ lại tối đa của một event trễ (giây). Mỗi event trễ bị giữ 10–100% con số này |
+| `--scenarios LIST` | không | `all` hoặc danh sách cách nhau bởi dấu phẩy, ví dụ `bot,price_glitch` (xem mục Kịch bản) |
+| `--scenario-start S` | không (mặc định 60) | Kịch bản đầu tiên bắt đầu sau S giây replay, các kịch bản sau cách nhau 120 giây |
+| `--outage-minutes M` | không (mặc định 10) | Độ dài `payment_outage`, tính theo phút replay |
+| `--scenario-log PATH` | không | Nơi ghi ground truth của kịch bản (JSON). Mặc định cạnh `--out`, hoặc `data/scenario_logs/` |
+| `--out PATH` | không | Ghi event ra file JSON Lines thay vì gửi Kafka, chạy hết tốc độ trên đồng hồ giả lập |
+| `--replay-start T` | không | `event_time` của event đầu tiên khi dùng `--out` (ví dụ `2026-11-11T13:00`), mặc định là giờ hiện tại |
 | `--limit N` | không | Dừng sau N event, tiện khi thử |
 
-Cứ 10,000 event chương trình in tiến độ (tốc độ thực tế, mức trễ so với lịch, số event trễ đang giữ). Hết dữ liệu thì chương trình chờ gửi nốt các event trễ đúng giờ của chúng. Bấm `Ctrl+C` để dừng: event trễ còn giữ và event đang chờ vẫn được gửi nốt, rồi in tổng kết `done: ... sent (... late), ... failed, ... not delivered`.
+Cứ 10,000 event chương trình in tiến độ (tốc độ thực tế, mức trễ so với lịch, số event trễ đang giữ). Hết dữ liệu thì chương trình chờ gửi nốt các event trễ đúng giờ của chúng. Bấm `Ctrl+C` để dừng: event trễ còn giữ và event đang chờ vẫn được gửi nốt, rồi in tổng kết `done: ... sent (... late), ... delivered in ...s (... ev/s), ... failed, ... not delivered`. `delivered` là số event Kafka / Event Hubs đã xác nhận nhận được, và tốc độ `ev/s` tính theo con số này.
 
 **4. Xem event trong Kafka.** Mở Kafka UI → Topics → `events` → Messages, hoặc xem trực tiếp trong terminal:
 
@@ -68,7 +75,23 @@ Cứ 10,000 event chương trình in tiến độ (tốc độ thực tế, mứ
 docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic events --property print.key=true --property print.partition=true
 ```
 
-**Lên Event Hubs (tuần 2):** không sửa code, chỉ đổi trong `.env`: `KAFKA_BOOTSTRAP_SERVERS`, `KAFKA_SECURITY_PROTOCOL=SASL_SSL` và `EVENTHUBS_CONNECTION_STRING`.
+**Lên Event Hubs:** không sửa code, chạy `scripts/fill_env.py` để đổi `.env` (`KAFKA_BOOTSTRAP_SERVERS`, `KAFKA_SECURITY_PROTOCOL=SASL_SSL`, `EVENTHUBS_CONNECTION_STRING`); `scripts/fill_env.py --local` để quay về Kafka local.
+
+**Kịch bản gian lận.** Bật bằng `--scenarios`. Mỗi kịch bản chạy ở một mốc cố định trên trục replay, theo thứ tự `bot` → `multi_account` → `price_glitch` → `payment_outage`, nên chạy lại cùng tham số ra đúng các event đó. Event chèn vào có `is_fraud = true` và `scenario` đúng tên; event thật giữ `is_fraud = false`, `scenario = null`. Cuối lần chạy, producer ghi file ground truth (JSON) liệt kê từng kịch bản: khoảng thời gian (theo `event_time`) và đối tượng (user, thiết bị, sản phẩm). File này là đầu vào của `analysis/evaluate_rules.py`. Lần chạy phải đủ dài: với `--scenario-start 60` và cả 4 kịch bản, sự cố kết thúc ở giây thứ 1,020 của replay (khoảng 17 phút).
+
+```powershell
+# Live, cả 4 kịch bản: 90 phút dữ liệu giờ cao điểm, nhanh gấp 4 (khoảng 22 phút)
+.venv\Scripts\python producer\main.py --start 2019-11-01T09:00 --end 2019-11-01T10:30 --speed 4 --scenarios all
+# Linux: .venv/bin/python producer/main.py --start 2019-11-01T09:00 --end 2019-11-01T10:30 --speed 4 --scenarios all
+
+# Ra file cho Stream Analytics local (vài giây, không cần Kafka)
+.venv\Scripts\python producer\main.py --start 2019-11-01T09:00 --end 2019-11-01T10:30 --speed 4 --scenarios all --out data\samples\events_scenarios_full.json --replay-start 2026-11-11T13:00
+# Linux: .venv/bin/python producer/main.py --start 2019-11-01T09:00 --end 2019-11-01T10:30 --speed 4 --scenarios all --out data/samples/events_scenarios_full.json --replay-start 2026-11-11T13:00
+```
+
+`stream/test/events_scenarios.json` là bản nhỏ đã commit (5% user, chỉ `bot`, `multi_account`, `price_glitch`, kèm `events_scenarios.scenarios.json`) để thử luật 1–3. Luật 4 cần lưu lượng đơn thật nên phải dùng bản đầy đủ như lệnh trên (khoảng 114,000 event, 68 MB, không commit).
+
+**Đo throughput:** `scripts/bench_producer.py` chạy producer ở nhiều mức `--rate`, mỗi mức nhiều lần, rồi in bảng (xem [docs/producer-throughput.md](../docs/producer-throughput.md)). Hai biến tùy chọn trong `.env` hoặc môi trường dùng cho thí nghiệm gửi theo lô: `KAFKA_LINGER_MS` (`linger.ms`) và `KAFKA_BATCH_SIZE` (`batch.size`); không đặt thì dùng mặc định của client.
 
 ## Input / Output
 
@@ -119,4 +142,15 @@ docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-s
 - Event trễ cố ý phá thứ tự (ví dụ một `view` trễ đến sau `purchase` của cùng user). Không dùng `--late-rate` thì thứ tự luôn được giữ.
 - Mặc định giữ lại 6–60 giây, đủ lâu để thử chính sách late arrival của Stream Analytics. Ngưỡng của job do Thắng cấu hình.
 
-**Giới hạn tốc độ.** Dataset trung bình 26.5 event/giây, đỉnh 243 event/giây. Một TU Event Hubs nhận 1,000 event/giây, nên `speed` tối đa khoảng 4 nếu không lấy mẫu.
+**Kịch bản gian lận** (`producer/scenarios.py`; mốc so sánh lấy từ dữ liệu thật tháng 11/2019):
+
+| Kịch bản | Bắt đầu (`--scenario-start 60`) | Chèn gì | Vì sao mạnh đến mức này |
+|---|---|---|---|
+| `bot` | giây 60 | 3 user giả (`user_id` từ 900,000,000), mỗi user 20 đơn trong 60 giây | User thật tối đa 7 đơn / phút; luật 1 thử ngưỡng từ 5 |
+| `multi_account` | giây 180 | 2 thiết bị, mỗi thiết bị 6 tài khoản mới (`is_new_account = true`), mỗi tài khoản một đơn dùng voucher `NEWMEMBER`, trong 5 phút | Mỗi user thật có thiết bị riêng; luật 2 thử 3–5 tài khoản / 10 phút |
+| `price_glitch` | giây 300 | 3 sản phẩm có giá tham chiếu ≥ 5,000,000 VND, mỗi sản phẩm 5 đơn giá 10–30% giá tham chiếu, trong 2 phút | Giá thật dao động tới 1.67 lần (p99); luật 3 thử lệch trên 50% |
+| `payment_outage` | giây 420, dài 10 phút | Không chèn: bỏ mọi purchase thật trả bằng `cod` (40% đơn) trong khoảng đó | Số đơn mỗi phút giảm khoảng 40%; ground truth là khoảng thời gian trong file log |
+
+User, sản phẩm và thời điểm được chọn bằng hash nên lần chạy nào cũng giống nhau. Đơn của kịch bản không bị `payment_outage` loại, và vẫn có thể bị `--late-rate` gửi trễ như event thường. Trên đoạn 2019-11-01 09:00–10:30 (`--speed 4`), dữ liệu thật không có user nào ≥ 5 đơn / phút, không thiết bị nào ≥ 3 tài khoản mới và không đơn nào thấp hơn 50% giá tham chiếu, nên mọi tín hiệu của luật 1–3 trên đoạn này đến từ kịch bản.
+
+**Giới hạn tốc độ.** Dataset trung bình 26.5 event/giây, đỉnh 243 event/giây. Một TU Event Hubs nhận 1,000 event/giây, nên `speed` tối đa khoảng 4 nếu không lấy mẫu. Hàng đợi của client giới hạn 10,000 message: khi đích nhận không kịp, producer phải chờ ngay, nên `behind schedule` tăng thay vì dồn event trong RAM. Kết quả đo xem [docs/producer-throughput.md](../docs/producer-throughput.md).
