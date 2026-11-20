@@ -51,7 +51,11 @@ Chi tiết: [producer-throughput.md](producer-throughput.md).
 | Ghi: producer → Event Hubs Standard 1 TU, ổn định | Khoảng 1,500 event/giây (khoảng 0.9–1 MB/giây) |
 | Ghi: Event Hubs, vượt ngắn hạn sau lúc rảnh | Tới khoảng 2,266 event/giây trong khoảng 1 phút |
 | Ghi: Event Hubs, mức nhận kịp hoàn toàn (không trễ lịch) | 1,000 event/giây |
-| Đọc: consumer ← Kafka local / Event Hubs | **(chờ)**: `scripts/bench_consumer.py` |
+| Đọc: một consumer ← Kafka local, ổn định | Khoảng 700,000 event/giây (khoảng 430 MB/giây) |
+| Đọc: một consumer ← Kafka local, dữ liệu vừa ghi còn trong cache | 1.0–2.1 triệu event/giây |
+| Đọc: consumer ← Event Hubs | **(chờ)**: cần key `asa-listen` (xem `scripts/README.md`) |
+
+Đo đọc (`scripts/bench_consumer.py`, ngày 20/11/2026): mỗi lần đọc 2,000,000 event (1,234 MB) từ topic `events` local, một consumer, tính từ message đầu tiên, chỉ đọc chứ không phân tích JSON; 2 loạt × 3 lần. Kết quả: 2.06, 1.02, 0.69, 1.06, 0.70, 0.70 triệu event/giây. Các lần đầu nhanh hơn vì dữ liệu vừa ghi còn trong bộ nhớ đệm; khi bộ nhớ đệm của WSL (khoảng 2.5 GiB) không còn chứa hết, tốc độ ổn định quanh 700,000 event/giây. Đọc nhanh hơn ghi hàng chục lần vì consumer lấy message theo lô lớn và không phải chờ broker xác nhận.
 
 Với 1 TU, giới hạn có tác dụng là dung lượng (1 MB/giây) chứ không phải 1,000 event/giây, vì event của nhóm khoảng 637 byte. Khi demo nên giữ dưới khoảng 1,000 event/giây (`--speed` ≤ 4 ở giờ cao điểm).
 
