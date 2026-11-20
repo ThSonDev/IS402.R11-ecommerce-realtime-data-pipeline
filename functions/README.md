@@ -33,6 +33,15 @@ Thử ở máy (không cần Azure Functions Core Tools):
 # Linux: .venv/bin/python functions/fraud_alert/alerts.py [--send]
 ```
 
+Thử trên Azure (gửi một lô giả giống ASA; group sẽ nhận tin):
+
+```powershell
+az functionapp function keys list -g rg-megasale-dev -n func-megasale-dev --function-name fraud_alert --query default -o tsv
+curl -s -X POST "https://func-megasale-dev.azurewebsites.net/api/fraud_alert?code=<key>" -H "Content-Type: application/json" -d '[{"alert_time":"2026-11-11T13:01:00Z","rule_name":"bot","entity_type":"user","entity_id":"900000000","metric_name":"orders_per_minute","metric_value":20,"threshold":5,"event_id":null}]'
+```
+
+Kết quả mong đợi `{"received": 1, "messages_sent": 1}`. `messages_sent` bằng 0 nghĩa là Function không gửi được Telegram (thường do token trong app settings đã cũ).
+
 Tạo bot: nhắn `@BotFather` lệnh `/newbot`, thêm bot vào group của nhóm, gửi một tin bất kỳ trong group, rồi mở `https://api.telegram.org/bot<token>/getUpdates` để lấy `chat.id` (group có id âm). Ghi `TELEGRAM_BOT_TOKEN` và `TELEGRAM_CHAT_ID` vào `.env`, không commit.
 
 ## Deploy

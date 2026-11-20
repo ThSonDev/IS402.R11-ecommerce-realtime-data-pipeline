@@ -67,7 +67,7 @@ docker compose up -d
 | `--replay-start T` | không | `event_time` của event đầu tiên khi dùng `--out` (ví dụ `2026-11-11T13:00`), mặc định là giờ hiện tại |
 | `--limit N` | không | Dừng sau N event, tiện khi thử |
 
-Cứ 10,000 event chương trình in tiến độ (tốc độ thực tế, mức trễ so với lịch, số event trễ đang giữ). Hết dữ liệu thì chương trình chờ gửi nốt các event trễ đúng giờ của chúng. Bấm `Ctrl+C` để dừng: event trễ còn giữ và event đang chờ vẫn được gửi nốt, rồi in tổng kết `done: ... sent (... late), ... delivered in ...s (... ev/s), ... failed, ... not delivered`. `delivered` là số event Kafka / Event Hubs đã xác nhận nhận được, và tốc độ `ev/s` tính theo con số này.
+Cứ 10,000 event chương trình in tiến độ (tốc độ thực tế, mức trễ so với lịch, số event trễ đang giữ). Hết dữ liệu thì chương trình chờ gửi nốt các event trễ đúng giờ của chúng. Bấm `Ctrl+C` để dừng: event trễ còn giữ và event đang chờ vẫn được gửi nốt, rồi in tổng kết `done: ... sent (... late), ... delivered in ...s (... ev/s), ... failed, ... not delivered`. `delivered` là số event Kafka / Event Hubs đã xác nhận nhận được, và tốc độ `ev/s` tính theo con số này. Khi có `--scenarios`, dòng tổng kết thêm số event của kịch bản (`fraud`) và số purchase bị `payment_outage` loại (`dropped by outage`).
 
 **4. Xem event trong Kafka.** Mở Kafka UI → Topics → `events` → Messages, hoặc xem trực tiếp trong terminal:
 
@@ -95,8 +95,9 @@ docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-s
 
 ## Input / Output
 
-- Input: `data/processed/2019-Nov.parquet` (xem [data/README.md](../data/README.md)), `stream/reference/provinces.csv`, cấu hình Kafka trong `.env`.
-- Output: event JSON theo contract gửi vào topic `events`, key là `user_id` (cùng user luôn vào cùng partition, giữ đúng thứ tự). File mẫu: `stream/test/events_sample.json` (1,036 event, JSON Lines).
+- Input: `data/processed/2019-Nov.parquet` (xem [data/README.md](../data/README.md)), `stream/reference/provinces.csv`, `stream/reference/price_list.csv` (giá tham chiếu cho kịch bản), cấu hình Kafka trong `.env`.
+- Output: event JSON theo contract gửi vào topic `events`, key là `user_id` (cùng user luôn vào cùng partition, giữ đúng thứ tự); hoặc file JSON Lines khi dùng `--out`. Khi có `--scenarios`: thêm file ground truth JSON.
+- File mẫu đã commit: `stream/test/events_sample.json` (1,036 event, không kịch bản) và `stream/test/events_scenarios.json` (2,109 event, có `bot`, `multi_account`, `price_glitch`, kèm `.scenarios.json`).
 
 ## Lưu ý và giả định
 
@@ -106,7 +107,7 @@ docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-s
 - Bỏ 100,519 dòng trùng hoàn toàn. Dòng trùng luôn nằm trong cùng một giây.
 - 41,287 trường hợp một user có nhiều loại event trong cùng một giây (dataset chỉ chính xác đến giây). Các event cùng giây được sắp theo thứ tự phễu view → cart → purchase.
 - Giữ nguyên dòng giá 0 (188,088 dòng, chỉ ở `view` và `cart`, không có ở `purchase`).
-- Giữ nguyên đoạn 14–17/11/2019 không có purchase (ca kiểm thử thật cho luật 4).
+- Giữ nguyên hai đoạn không có purchase nào dù lượt xem vẫn cao (150,000–340,000 view mỗi giờ): 2019-11-14 18:09 → 2019-11-16 08:32 UTC (khoảng 38 giờ) và 2019-11-16 15:34 → 2019-11-17 03:43 UTC (khoảng 12 giờ). Đây là ca kiểm thử thật cho luật 4. Ngày 15/11 có 0 purchase cả ngày, còn ngày 17/11 lại là ngày nhiều purchase nhất tháng (185,195).
 
 **Giả định mô phỏng** (không dựa trên số liệu thật):
 
@@ -127,14 +128,15 @@ docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-s
 **Thời gian.**
 - `event_time = replay_start + (original_time − original_start) / speed` (chế độ `--speed`); chế độ `--rate` thì event thứ k có `event_time = replay_start + k / rate`. `original_time` luôn giữ giờ gốc 2019.
 
-| | Chạy live (`main.py`) | File mẫu (`stream/test/events_sample.json`) |
+| | Chạy live (`main.py`) | Ra file (`--out`, các file mẫu) |
 |---|---|---|
-| `replay_start` | Giờ máy lúc bắt đầu chạy | Mốc cố định 2026-11-11 13:00 UTC |
-| Dịch +4h | Không áp dụng: `event_time` luôn là thời điểm hiện tại | Có: đoạn gốc 09:00 UTC đặt vào 13:00 UTC (20h giờ Việt Nam) |
-| `sent_time` | Giờ máy ngay lúc gửi, dùng để đo độ trễ | Bằng `event_time` (giữ chỗ), không dùng để đo độ trễ |
+| `replay_start` | Giờ máy lúc bắt đầu chạy | `--replay-start`; các file mẫu dùng 2026-11-11 13:00 UTC |
+| Dịch +4h | Không áp dụng: `event_time` luôn là thời điểm hiện tại | Chọn qua `--replay-start`: file mẫu đặt đoạn gốc 09:00 UTC vào 13:00 UTC (20h giờ Việt Nam) |
+| `sent_time` | Giờ máy ngay lúc gửi, dùng để đo độ trễ | Thời điểm gửi trên đồng hồ giả lập: bằng `event_time` với event đúng giờ, muộn hơn với event trễ. Không dùng để đo độ trễ thật. Riêng `events_sample.json` (xuất trước khi có `--out`) có `sent_time` luôn bằng `event_time` |
 
 - Chạy live bắt buộc dùng giờ hiện tại: Stream Analytics đối chiếu `event_time` với lúc event đến (event quá cũ hoặc ở tương lai bị điều chỉnh hoặc bỏ), và dashboard real-time chỉ hiển thị khoảng thời gian gần đây.
 - Muốn demo có lưu lượng giờ cao điểm thì chọn đoạn dữ liệu cao điểm, ví dụ `--start 2019-11-01T09:00`.
+- Muốn demo sự cố thật cho luật 4, chọn đoạn bao quanh lúc purchase biến mất, ví dụ `--start 2019-11-14T17:30 --end 2019-11-14T19:00 --speed 4`: purchase dừng ở phút thứ 39 của đoạn gốc (khoảng phút thứ 10 khi phát nhanh gấp 4), lượt xem vẫn đều.
 
 **Event trễ.**
 - Bật bằng `--late-rate`. Event nào trễ và trễ bao lâu được chọn bằng hash của `event_id`, nên chạy lại cùng đoạn dữ liệu thì đúng những event đó bị trễ, đúng thời gian đó.
@@ -153,4 +155,4 @@ docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-s
 
 User, sản phẩm và thời điểm được chọn bằng hash nên lần chạy nào cũng giống nhau. Đơn của kịch bản không bị `payment_outage` loại, và vẫn có thể bị `--late-rate` gửi trễ như event thường. Trên đoạn 2019-11-01 09:00–10:30 (`--speed 4`), dữ liệu thật không có user nào ≥ 5 đơn / phút, không thiết bị nào ≥ 3 tài khoản mới và không đơn nào thấp hơn 50% giá tham chiếu, nên mọi tín hiệu của luật 1–3 trên đoạn này đến từ kịch bản.
 
-**Giới hạn tốc độ.** Dataset trung bình 26.5 event/giây, đỉnh 243 event/giây. Một TU Event Hubs nhận 1,000 event/giây, nên `speed` tối đa khoảng 4 nếu không lấy mẫu. Hàng đợi của client giới hạn 10,000 message: khi đích nhận không kịp, producer phải chờ ngay, nên `behind schedule` tăng thay vì dồn event trong RAM. Kết quả đo xem [docs/producer-throughput.md](../docs/producer-throughput.md).
+**Giới hạn tốc độ.** Dataset trung bình 26.5 event/giây, đỉnh 243 event/giây. Đo thực tế với 1 TU: Event Hubs nhận kịp hoàn toàn đến 1,000 event/giây, tối đa ổn định khoảng 1,500 event/giây (giới hạn 1 MB/giây). Để không bị trễ, giữ `--speed` ≤ 4 ở giờ cao điểm nếu không lấy mẫu. Hàng đợi của client giới hạn 10,000 message: khi đích nhận không kịp, producer phải chờ ngay, nên `behind schedule` tăng thay vì dồn event trong RAM. Kết quả đo xem [docs/producer-throughput.md](../docs/producer-throughput.md).

@@ -72,7 +72,7 @@ Với 1 TU, giới hạn có tác dụng là dung lượng (1 MB/giây) chứ kh
 | Giờ cao điểm | 08–10 UTC |
 | User có nhiều loại event trong cùng một giây | 41,287 trường hợp (dataset chỉ chính xác đến giây) |
 | Mốc cho luật | User thật tối đa 7 đơn / phút; giá một sản phẩm dao động tới 1.67 lần (p99) |
-| Sự cố thật | 14–17/11/2019 không có purchase dù lượt xem vẫn tăng; giữ nguyên làm ca kiểm thử cho luật 4 |
+| Sự cố thật | Không có purchase nào trong hai đoạn 2019-11-14 18:09 → 2019-11-16 08:32 UTC (khoảng 38 giờ) và 2019-11-16 15:34 → 2019-11-17 03:43 UTC (khoảng 12 giờ), dù lượt xem vẫn 150,000–340,000 / giờ; giữ nguyên làm ca kiểm thử cho luật 4 |
 
 **Xử lý và làm giàu** (chi tiết và mọi giả định: [producer/README.md](../producer/README.md)):
 
@@ -99,6 +99,12 @@ Trên đoạn 2019-11-01 09:00–10:30 (`--speed 4`, 113,928 event), dữ liệu
 **Phương pháp** (`analysis/evaluate_rules.py`): so `alerts` (xuất từ `dbo.alerts`) với file ground truth producer ghi trong lần chạy.
 
 - Luật 1–3 tính theo **đối tượng**: precision = số đối tượng bị báo mà đúng là của kịch bản / số đối tượng bị báo; recall = số đối tượng của kịch bản bị báo / số đối tượng của kịch bản. Đối tượng là user (luật 1), thiết bị (luật 2), sản phẩm (luật 3).
-- Luật 4 tính theo **thời gian**: precision = số cảnh báo rơi vào khoảng sự cố (cho phép trễ 2 phút) / tổng cảnh báo; recall = số khoảng sự cố có ít nhất một cảnh báo / số khoảng sự cố. Khoảng sự cố gồm `payment_outage` và, khi replay đoạn 14–17/11/2019, cả sự cố thật (`--incident`).
+- Luật 4 tính theo **thời gian**: precision = số cảnh báo rơi vào khoảng sự cố (cho phép trễ 2 phút) / tổng cảnh báo; recall = số khoảng sự cố có ít nhất một cảnh báo / số khoảng sự cố. Khoảng sự cố gồm `payment_outage` và, khi replay đoạn có sự cố thật (purchase dừng lúc 2019-11-14 18:09 UTC), cả khoảng đó trên trục `event_time` của lần chạy (`--incident`).
 
 Công cụ đã được kiểm tra bằng 4 luật giả lập bằng DuckDB theo ngưỡng gợi ý trong plan/Thang.md, trên file 09:00–10:30 ở trên. Kết quả này **chỉ để kiểm tra công cụ**, không phải kết quả của các luật ASA: luật 1–3 bắt đủ và không báo nhầm; luật 4 bắt được sự cố nhưng có 1 báo nhầm ở phút cuối của dữ liệu (phút chỉ có một phần nên số đơn thấp). Đây là loại báo nhầm cần lưu ý khi đánh giá luật thật.
+
+**Hạn chế của cách đánh giá:**
+
+- Gian lận do nhóm tự tạo theo đúng 4 kiểu đã định nghĩa, và khá "mạnh" (ví dụ bot 20 đơn / phút so với tối đa 7 của người thật). Precision / recall cao chỉ cho thấy luật bắt được đúng các kiểu này, không chứng minh luật hiệu quả với gian lận thật, vốn đa dạng hơn và thường cố tình né ngưỡng.
+- Để đánh giá sát hơn khi chỉnh ngưỡng (#72), nên chạy thêm kịch bản yếu hơn, ví dụ giảm `BOT_ORDERS` trong `producer/scenarios.py` xuống 8–10.
+- Ground truth luật 1–3 là đối tượng do kịch bản tạo; người thật có hành vi giống gian lận (ví dụ mua 7 đơn / phút) bị tính là báo nhầm dù có thể đáng nghi.
