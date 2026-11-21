@@ -27,8 +27,6 @@ SELECT
     TRY_CONVERT(varchar(32), src.scenario) AS scenario,
     TRY_CONVERT(bit, src.is_late) AS is_late,
     TRY_CONVERT(datetime2(3), src.EventEnqueuedUtcTime) AS EventEnqueuedUtcTime,
-    TRY_CONVERT(datetime2(3), src.EventProcessedUtcTime) AS EventProcessedUtcTime,
-    TRY_CONVERT(int, src.PartitionId) AS PartitionId,
     TRY_CONVERT(smallint, src.filepath(1)) AS partition_year,
     TRY_CONVERT(tinyint, src.filepath(2)) AS partition_month,
     TRY_CONVERT(tinyint, src.filepath(3)) AS partition_day,
@@ -51,7 +49,7 @@ WITH ranked AS
         ROW_NUMBER() OVER
         (
             PARTITION BY event_id
-            ORDER BY EventEnqueuedUtcTime DESC, EventProcessedUtcTime DESC, sent_time DESC
+            ORDER BY EventEnqueuedUtcTime DESC, sent_time DESC
         ) AS duplicate_rank
     FROM [silver].[events_raw]
     WHERE event_id IS NOT NULL
@@ -81,8 +79,6 @@ SELECT
     scenario,
     is_late,
     EventEnqueuedUtcTime,
-    EventProcessedUtcTime,
-    PartitionId,
     partition_year,
     partition_month,
     partition_day,

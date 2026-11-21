@@ -9,7 +9,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 WAREHOUSE_DIR = ROOT / "warehouse"
 DEFAULT_SERVER = "synw-megasale-dev-ondemand.sql.azuresynapse.net"
