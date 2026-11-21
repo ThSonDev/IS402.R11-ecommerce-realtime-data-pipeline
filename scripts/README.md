@@ -8,6 +8,7 @@ Script chạy một lần hoặc chạy tay.
 |---|---|
 | `prepare_data.py` | Tải dữ liệu REES46, chuyển sang Parquet (xem `data/README.md`) |
 | `fill_env.py` | Điền thông tin kết nối Event Hubs vào `.env` bằng quyền `az login` của chính bạn |
+| `deploy_sql.py` | Chạy tuần tự các file SQL đánh số trong `warehouse/` lên Synapse serverless bằng `sqlcmd` + Azure CLI auth |
 | `benchmark_storage.py` | So sánh dung lượng và thời gian truy vấn DuckDB trên cùng event set ở CSV.gz, JSON.gz và Parquet |
 | `bench_producer.py` | Đo tốc độ ghi của producer ở nhiều mức `--rate` (Kafka local hoặc Event Hubs), in bảng. Kết quả: `docs/producer-throughput.md` |
 | `bench_consumer.py` | Đo tốc độ đọc của một consumer trên topic `events` |
@@ -23,6 +24,16 @@ Chạy từ thư mục gốc repo sau khi đã tải và xử lý dữ liệu th
 ```
 
 Script tạo các bản CSV.gz, JSON.gz và Parquet Zstandard trong `data/benchmark/`; dữ liệu và kết quả không commit lên Git. Script kiểm tra các số tổng hợp tương ứng phải giống nhau ở cả định dạng. Kết quả JSON ghi kích thước file và median thời gian đọc sau một lượt warm-up. Nếu đã tạo đủ ba file so sánh, thêm `--reuse` để chỉ chạy lại phép đo mà không tạo lại chúng.
+## deploy_sql.py
+
+Cần `az login`, quyền Synapse SQL, quyền Storage Blob Data Reader trên `lake` và `reference`, cùng `sqlcmd` (`winget install Microsoft.Sqlcmd`). Chạy từ thư mục gốc repo:
+
+```powershell
+.venv\Scripts\python scripts/deploy_sql.py
+.venv\Scripts\python scripts/deploy_sql.py --dry-run
+```
+
+`00_create_database.sql` chạy trong `master`; những file còn lại chạy trong `megasale_warehouse`. Script dừng ở file lỗi và có thể chạy lại sau khi sửa. Dùng `--server`, `--database` hoặc `--sqlcmd` để ghi đè mặc định.
 
 ## fill_env.py
 
