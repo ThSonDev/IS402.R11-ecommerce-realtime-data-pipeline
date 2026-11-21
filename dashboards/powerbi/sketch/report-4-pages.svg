@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1040" viewBox="0 0 1600 1040" font-family="Segoe UI, Arial, sans-serif">
+  <rect width="1600" height="1040" fill="#f3f4f6"/>
+  <text x="800" y="36" text-anchor="middle" font-size="24" font-weight="700" fill="#111827">Phác thảo bố cục báo cáo Power BI (4 trang)</text>
+  <text x="800" y="62" text-anchor="middle" font-size="14" fill="#4b5563"></text>
+
+  <!-- ===== Trang 1 ===== -->
+  <g transform="translate(30,85)">
+    <rect width="760" height="440" rx="8" fill="#ffffff" stroke="#9ca3af"/>
+    <text x="20" y="30" font-size="18" font-weight="700" fill="#111827">Trang 1 – Tổng quan</text>
+    <!-- filters -->
+    <rect x="20" y="45" width="140" height="28" rx="4" fill="#eef2ff" stroke="#6366f1"/><text x="90" y="64" text-anchor="middle" font-size="13" fill="#3730a3">Lọc: Thời gian</text>
+    <rect x="170" y="45" width="110" height="28" rx="4" fill="#eef2ff" stroke="#6366f1"/><text x="225" y="64" text-anchor="middle" font-size="13" fill="#3730a3">Lọc: Sàn</text>
+    <rect x="290" y="45" width="130" height="28" rx="4" fill="#eef2ff" stroke="#6366f1"/><text x="355" y="64" text-anchor="middle" font-size="13" fill="#3730a3">Lọc: Danh mục</text>
+    <!-- KPI cards -->
+    <rect x="20" y="90" width="170" height="70" rx="6" fill="#ecfdf5" stroke="#10b981"/><text x="105" y="118" text-anchor="middle" font-size="13" fill="#065f46">GMV</text><text x="105" y="145" text-anchor="middle" font-size="20" font-weight="700" fill="#065f46">### VND</text>
+    <rect x="205" y="90" width="170" height="70" rx="6" fill="#ecfdf5" stroke="#10b981"/><text x="290" y="118" text-anchor="middle" font-size="13" fill="#065f46">Số đơn</text><text x="290" y="145" text-anchor="middle" font-size="20" font-weight="700" fill="#065f46">###</text>
+    <rect x="390" y="90" width="170" height="70" rx="6" fill="#ecfdf5" stroke="#10b981"/><text x="475" y="118" text-anchor="middle" font-size="13" fill="#065f46">Giá trị TB mỗi đơn (AOV)</text><text x="475" y="145" text-anchor="middle" font-size="20" font-weight="700" fill="#065f46">### VND</text>
+    <rect x="575" y="90" width="165" height="70" rx="6" fill="#ecfdf5" stroke="#10b981"/><text x="657" y="118" text-anchor="middle" font-size="13" fill="#065f46">Tỷ lệ chuyển đổi</text><text x="657" y="145" text-anchor="middle" font-size="20" font-weight="700" fill="#065f46">##.#%</text>
+    <!-- charts -->
+    <rect x="20" y="175" width="450" height="205" rx="6" fill="#f9fafb" stroke="#d1d5db"/>
+    <text x="35" y="198" font-size="14" font-weight="600" fill="#111827">Biểu đồ đường: GMV và số đơn theo thời gian</text>
+    <polyline points="40,350 100,320 160,335 220,290 280,300 340,260 400,275 450,240" fill="none" stroke="#2563eb" stroke-width="3"/>
+    <rect x="490" y="175" width="250" height="205" rx="6" fill="#f9fafb" stroke="#d1d5db"/>
+    <text x="505" y="198" font-size="14" font-weight="600" fill="#111827">Biểu đồ cột: GMV theo sàn</text>
+    <rect x="525" y="290" width="40" height="70" fill="#60a5fa"/><rect x="590" y="250" width="40" height="110" fill="#60a5fa"/><rect x="655" y="310" width="40" height="50" fill="#60a5fa"/>
+    <text x="545" y="375" text-anchor="middle" font-size="11" fill="#374151">Tiki</text><text x="610" y="375" text-anchor="middle" font-size="11" fill="#374151">Shopee</text><text x="675" y="375" text-anchor="middle" font-size="11" fill="#374151">Lazada</text>
+    <!-- nav -->
+    <rect x="20" y="395" width="120" height="28" rx="14" fill="#2563eb"/><text x="80" y="414" text-anchor="middle" font-size="12" fill="#fff">Tổng quan</text>
+    <rect x="150" y="395" width="120" height="28" rx="14" fill="#e5e7eb"/><text x="210" y="414" text-anchor="middle" font-size="12" fill="#374151">Sản phẩm</text>
+    <rect x="280" y="395" width="120" height="28" rx="14" fill="#e5e7eb"/><text x="340" y="414" text-anchor="middle" font-size="12" fill="#374151">Sàn × tỉnh</text>
+    <rect x="410" y="395" width="120" height="28" rx="14" fill="#e5e7eb"/><text x="470" y="414" text-anchor="middle" font-size="12" fill="#374151">Gian lận</text>
+    <text x="740" y="414" text-anchor="end" font-size="11" fill="#6b7280">Nút điều hướng</text>
+  </g>
+
+  <!-- ===== Trang 2 ===== -->
+  <g transform="translate(810,85)">
+    <rect width="760" height="440" rx="8" fill="#ffffff" stroke="#9ca3af"/>
+    <text x="20" y="30" font-size="18" font-weight="700" fill="#111827">Trang 2 – Chi tiết sản phẩm và danh mục</text>
+    <rect x="20" y="45" width="140" height="28" rx="4" fill="#eef2ff" stroke="#6366f1"/><text x="90" y="64" text-anchor="middle" font-size="13" fill="#3730a3">Lọc: Thời gian</text>
+    <rect x="170" y="45" width="110" height="28" rx="4" fill="#eef2ff" stroke="#6366f1"/><text x="225" y="64" text-anchor="middle" font-size="13" fill="#3730a3">Lọc: Sàn</text>
+    <rect x="290" y="45" width="130" height="28" rx="4" fill="#eef2ff" stroke="#6366f1"/><text x="355" y="64" text-anchor="middle" font-size="13" fill="#3730a3">Lọc: Danh mục</text>
+    <rect x="20" y="90" width="350" height="290" rx="6" fill="#f9fafb" stroke="#d1d5db"/>
+    <text x="35" y="113" font-size="14" font-weight="600" fill="#111827">Cơ cấu GMV theo danh mục</text>
+    <circle cx="195" cy="245" r="85" fill="none" stroke="#60a5fa" stroke-width="40"/>
+    <circle cx="195" cy="245" r="85" fill="none" stroke="#34d399" stroke-width="40" stroke-dasharray="180 534"/>
+    <circle cx="195" cy="245" r="85" fill="none" stroke="#fbbf24" stroke-width="40" stroke-dasharray="90 534" stroke-dashoffset="-200"/>
+    <rect x="390" y="90" width="350" height="135" rx="6" fill="#f9fafb" stroke="#d1d5db"/>
+    <text x="405" y="113" font-size="14" font-weight="600" fill="#111827">Top brand theo GMV</text>
+    <rect x="410" y="128" width="250" height="14" fill="#60a5fa"/><rect x="410" y="152" width="190" height="14" fill="#60a5fa"/><rect x="410" y="176" width="130" height="14" fill="#60a5fa"/><rect x="410" y="200" width="80" height="14" fill="#60a5fa"/>
+    <rect x="390" y="245" width="350" height="135" rx="6" fill="#f9fafb" stroke="#d1d5db"/>
+    <text x="405" y="268" font-size="14" font-weight="600" fill="#111827">Bảng top sản phẩm: sản phẩm | số đơn | GMV</text>
+    <line x1="405" y1="285" x2="725" y2="285" stroke="#d1d5db"/><line x1="405" y1="308" x2="725" y2="308" stroke="#e5e7eb"/><line x1="405" y1="331" x2="725" y2="331" stroke="#e5e7eb"/><line x1="405" y1="354" x2="725" y2="354" stroke="#e5e7eb"/>
+    <rect x="20" y="395" width="120" height="28" rx="14" fill="#e5e7eb"/><text x="80" y="414" text-anchor="middle" font-size="12" fill="#374151">Tổng quan</text>
+    <rect x="150" y="395" width="120" height="28" rx="14" fill="#2563eb"/><text x="210" y="414" text-anchor="middle" font-size="12" fill="#fff">Sản phẩm</text>
+    <rect x="280" y="395" width="120" height="28" rx="14" fill="#e5e7eb"/><text x="340" y="414" text-anchor="middle" font-size="12" fill="#374151">Sàn × tỉnh</text>
+    <rect x="410" y="395" width="120" height="28" rx="14" fill="#e5e7eb"/><text x="470" y="414" text-anchor="middle" font-size="12" fill="#374151">Gian lận</text>
+  </g>
+
+  <!-- ===== Trang 3 ===== -->
+  <g transform="translate(30,545)">
+    <rect width="760" height="440" rx="8" fill="#ffffff" stroke="#9ca3af"/>
+    <text x="20" y="30" font-size="18" font-weight="700" fill="#111827">Trang 3 – Theo sàn × tỉnh (bản đồ)</text>
+    <rect x="20" y="45" width="140" height="28" rx="4" fill="#eef2ff" stroke="#6366f1"/><text x="90" y="64" text-anchor="middle" font-size="13" fill="#3730a3">Lọc: Thời gian</text>
+    <rect x="170" y="45" width="110" height="28" rx="4" fill="#eef2ff" stroke="#6366f1"/><text x="225" y="64" text-anchor="middle" font-size="13" fill="#3730a3">Lọc: Sàn</text>
+    <rect x="20" y="90" width="450" height="290" rx="6" fill="#f9fafb" stroke="#d1d5db"/>
+    <text x="35" y="113" font-size="14" font-weight="600" fill="#111827">Bản đồ tỉnh/thành, màu theo GMV</text>
+    <path d="M250 135 L280 150 L270 190 L300 230 L285 280 L300 330 L260 360 L235 320 L245 270 L220 220 L235 170 Z" fill="#bfdbfe" stroke="#3b82f6" stroke-width="2"/>
+    <text x="150" y="250" font-size="12" fill="#6b7280">(hình minh họa, bản đồ thật do Power BI vẽ)</text>
+    <rect x="490" y="90" width="250" height="290" rx="6" fill="#f9fafb" stroke="#d1d5db"/>
+    <text x="505" y="113" font-size="14" font-weight="600" fill="#111827">Bảng GMV: sàn × miền</text>
+    <text x="505" y="140" font-size="12" fill="#374151">          Bắc   Trung   Nam</text>
+    <text x="505" y="165" font-size="12" fill="#374151">Tiki     ###   ###    ###</text>
+    <text x="505" y="190" font-size="12" fill="#374151">Shopee   ###   ###    ###</text>
+    <text x="505" y="215" font-size="12" fill="#374151">Lazada   ###   ###    ###</text>
+    <rect x="20" y="395" width="120" height="28" rx="14" fill="#e5e7eb"/><text x="80" y="414" text-anchor="middle" font-size="12" fill="#374151">Tổng quan</text>
+    <rect x="150" y="395" width="120" height="28" rx="14" fill="#e5e7eb"/><text x="210" y="414" text-anchor="middle" font-size="12" fill="#374151">Sản phẩm</text>
+    <rect x="280" y="395" width="120" height="28" rx="14" fill="#2563eb"/><text x="340" y="414" text-anchor="middle" font-size="12" fill="#fff">Sàn × tỉnh</text>
+    <rect x="410" y="395" width="120" height="28" rx="14" fill="#e5e7eb"/><text x="470" y="414" text-anchor="middle" font-size="12" fill="#374151">Gian lận</text>
+  </g>
+
+  <!-- ===== Trang 4 ===== -->
+  <g transform="translate(810,545)">
+    <rect width="760" height="440" rx="8" fill="#ffffff" stroke="#9ca3af"/>
+    <text x="20" y="30" font-size="18" font-weight="700" fill="#111827">Trang 4 – Gian lận và sự cố</text>
+    <rect x="20" y="45" width="140" height="28" rx="4" fill="#eef2ff" stroke="#6366f1"/><text x="90" y="64" text-anchor="middle" font-size="13" fill="#3730a3">Lọc: Thời gian</text>
+    <rect x="170" y="45" width="130" height="28" rx="4" fill="#eef2ff" stroke="#6366f1"/><text x="235" y="64" text-anchor="middle" font-size="13" fill="#3730a3">Lọc: Kịch bản</text>
+    <rect x="20" y="90" width="220" height="70" rx="6" fill="#fef2f2" stroke="#ef4444"/><text x="130" y="118" text-anchor="middle" font-size="13" fill="#991b1b">Số đơn gắn cờ gian lận</text><text x="130" y="145" text-anchor="middle" font-size="20" font-weight="700" fill="#991b1b">###</text>
+    <rect x="255" y="90" width="220" height="70" rx="6" fill="#fef2f2" stroke="#ef4444"/><text x="365" y="118" text-anchor="middle" font-size="13" fill="#991b1b">Tỷ lệ đơn gian lận</text><text x="365" y="145" text-anchor="middle" font-size="20" font-weight="700" fill="#991b1b">##.#%</text>
+    <rect x="490" y="90" width="250" height="70" rx="6" fill="#fff7ed" stroke="#f97316"/><text x="615" y="118" text-anchor="middle" font-size="13" fill="#9a3412">Số event đến trễ</text><text x="615" y="145" text-anchor="middle" font-size="20" font-weight="700" fill="#9a3412">###</text>
+    <rect x="20" y="175" width="450" height="205" rx="6" fill="#f9fafb" stroke="#d1d5db"/>
+    <text x="35" y="198" font-size="14" font-weight="600" fill="#111827">Biểu đồ đường: đơn gian lận theo thời gian</text>
+    <polyline points="40,350 100,345 160,340 220,260 280,335 340,330 400,300 450,338" fill="none" stroke="#dc2626" stroke-width="3"/>
+    <rect x="490" y="175" width="250" height="205" rx="6" fill="#f9fafb" stroke="#d1d5db"/>
+    <text x="505" y="198" font-size="14" font-weight="600" fill="#111827">Cột: theo kịch bản</text>
+    <text x="505" y="215" font-size="10" fill="#6b7280">bot, multi_account, price_glitch, payment_outage</text>
+    <rect x="515" y="290" width="30" height="70" fill="#f87171"/><rect x="565" y="260" width="30" height="100" fill="#f87171"/><rect x="615" y="320" width="30" height="40" fill="#f87171"/><rect x="665" y="300" width="30" height="60" fill="#f87171"/>
+    <text x="20" y="392" font-size="11" fill="#6b7280">Lưu ý: is_fraud và scenario là nhãn đúng (ground truth), không phải kết quả của 4 luật.</text>
+    <rect x="20" y="398" width="120" height="28" rx="14" fill="#e5e7eb"/><text x="80" y="417" text-anchor="middle" font-size="12" fill="#374151">Tổng quan</text>
+    <rect x="150" y="398" width="120" height="28" rx="14" fill="#e5e7eb"/><text x="210" y="417" text-anchor="middle" font-size="12" fill="#374151">Sản phẩm</text>
+    <rect x="280" y="398" width="120" height="28" rx="14" fill="#e5e7eb"/><text x="340" y="417" text-anchor="middle" font-size="12" fill="#374151">Sàn × tỉnh</text>
+    <rect x="410" y="398" width="120" height="28" rx="14" fill="#2563eb"/><text x="470" y="417" text-anchor="middle" font-size="12" fill="#fff">Gian lận</text>
+  </g>
+</svg>
