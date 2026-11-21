@@ -9,7 +9,7 @@ Grafana OSS (bản Windows, chạy dạng service) đọc Azure SQL Database. Da
 | `provisioning/datasources/megasale-sql.yaml` | Data source `megasale-sql`: Azure SQL, đăng nhập Entra bằng app chỉ đọc `grafana-megasale-reader` |
 | `provisioning/dashboards/megasale.yaml` | Nạp mọi dashboard trong `dashboards/` vào folder `Megasale` |
 | `provisioning/alerting/` | Contact point `telegram-oncall` (chung bot với Function) và alert rule |
-| `dashboards/war-room.json` | Dashboard `Mega Sale war room`: GMV, đơn, phễu, top tỉnh, độ trễ pipeline |
+| `dashboards/war-room.json` | Dashboard `Mega Sale war room`: GMV, đơn, phễu, top tỉnh, độ trễ pipeline, bảng cảnh báo mới nhất và số cảnh báo theo luật (từ `dbo.alerts`, chỉ hiển thị, không gửi Telegram) |
 | `setup-windows.ps1` | Cài một lần: bật Azure auth, trỏ provisioning vào repo, nạp secret từ `.env` vào service |
 
 ## Cài đặt (một lần)

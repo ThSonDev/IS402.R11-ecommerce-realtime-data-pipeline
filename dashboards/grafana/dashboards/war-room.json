@@ -441,6 +441,62 @@
         }
       ],
       "id": 9
+    },
+    {
+      "type": "table",
+      "title": "Cảnh báo mới nhất",
+      "datasource": {
+        "type": "mssql",
+        "uid": "megasale-sql"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 28,
+        "w": 16,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mssql",
+            "uid": "megasale-sql"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT TOP 20 alert_time, rule_name, entity_type, entity_id, metric_name, metric_value, threshold FROM dbo.alerts ORDER BY alert_time DESC"
+        }
+      ],
+      "id": 10
+    },
+    {
+      "type": "table",
+      "title": "Trạng thái 4 luật (15 phút gần nhất)",
+      "datasource": {
+        "type": "mssql",
+        "uid": "megasale-sql"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 28,
+        "w": 8,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mssql",
+            "uid": "megasale-sql"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT r.rule_name, COUNT(a.rule_name) AS alerts FROM (VALUES ('bot'), ('multi_account'), ('price_glitch'), ('payment_outage')) AS r(rule_name) LEFT JOIN dbo.alerts a ON a.rule_name = r.rule_name AND a.alert_time >= DATEADD(minute, -15, SYSUTCDATETIME()) GROUP BY r.rule_name ORDER BY r.rule_name"
+        }
+      ],
+      "id": 11
     }
   ]
 }
