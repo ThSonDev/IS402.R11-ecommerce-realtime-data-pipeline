@@ -16,3 +16,5 @@ GRANT CONNECT TO [asa-megasale-dev];
 GRANT SELECT, INSERT ON OBJECT::dbo.kpi_1min TO [asa-megasale-dev];
 GRANT SELECT, INSERT ON OBJECT::dbo.pipeline_latency TO [asa-megasale-dev];
 GO
+GRANT SELECT, INSERT ON OBJECT::dbo.alerts TO [asa-megasale-dev];
+GO
