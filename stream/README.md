@@ -32,3 +32,9 @@ Query cloud dùng `TIMESTAMP BY event_time`; cấu hình đã áp dụng trong T
 `stream/JobConfig.json` có late-arrival tolerance 1,800 giây cho replay tĩnh local; đó là cấu hình riêng cho file quá khứ và không phải cấu hình cloud.
 
 Kết quả chạy cloud và cách đọc metric được ghi tại [docs/event-time-policy.md](../docs/event-time-policy.md). Lượt baseline trước PR #82 dùng tolerance 5/0 giây và query còn hai câu `FROM [events]`; số `LateInputEvents` trong lượt đó không phải số event late duy nhất. Query sau PR #82 dùng chung một CTE từ input `events`.
+
+### Luật cảnh báo 2–3 (#61/#62)
+
+`multi_account` phát cảnh báo khi có hơn 3 tài khoản mới khác nhau dùng cùng thiết bị và voucher trong một cửa sổ 10 phút. `price_glitch` phát cảnh báo khi độ lệch tuyệt đối trung bình giữa giá mua và `price_list` vượt 50% trong một cửa sổ 1 phút. Cả hai luật ghi cùng contract 8 cột với luật bot; `event_id` là `NULL` vì ASA không hỗ trợ `MIN`/`MAX` trên chuỗi để chọn một ID đại diện. CTE `alerts` hợp nhất luật rồi ghi ra cả `alerts_sql` và `alerts_function`.
+
+Đã chạy query bằng ASA Tools LocalRunService với các scenario mẫu cùng dữ liệu giá tham chiếu: hai output alert giống nhau, contract có đủ 8 cột; lượt đó phát 2 cảnh báo `multi_account` và 5 `price_glitch` (ngoài 3 cảnh báo bot). Đây là kiểm chứng local trên scenario, chưa phải xác nhận cloud. Luật 4 còn chờ chốt cách tạo đủ lịch sử trước khi code và chạy cloud.
