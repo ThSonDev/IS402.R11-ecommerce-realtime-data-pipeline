@@ -27,7 +27,7 @@ az login
 
 Script chạy các file `.sql` có tiền tố số theo thứ tự; file `00_create_database.sql` chạy trong `master`, các file còn lại trong `megasale_warehouse`. Dừng ngay khi `sqlcmd` báo lỗi. Có thể truyền `--sqlcmd` nếu executable không nằm trong PATH. Các file dùng `CREATE OR ALTER` hoặc kiểm tra metadata trước khi tạo để có thể chạy lại.
 
-`silver.events_raw` đưa các giá trị năm/tháng/ngày/giờ từ đường dẫn thành cột phân vùng; lọc các cột này để giới hạn số file đọc. `silver.events` chuẩn hóa kiểu dữ liệu theo contract, loại các dòng thiếu `event_id` hoặc `event_time` hợp lệ, rồi giữ bản nhận mới nhất của mỗi `event_id`. Dòng không hợp lệ vẫn xem được trong `silver.events_raw` để điều tra. Do view silver deduplicate toàn lịch sử, các truy vấn đo theo một run nên lọc `silver.events_raw` theo phân vùng trước rồi mới `ROW_NUMBER()` trên phần dữ liệu đã lọc; outer filter trên `silver.events` có thể không giảm lượng file được quét.
+`silver.events_raw` đưa các giá trị năm/tháng/ngày/giờ từ đường dẫn thành cột phân vùng; lọc các cột này để giới hạn số file đọc. `silver.events` chuẩn hóa kiểu dữ liệu theo contract, loại các dòng thiếu `event_id` hoặc `event_time` hợp lệ, rồi giữ bản nhận mới nhất của mỗi `event_id`. Dòng không hợp lệ vẫn xem được trong `silver.events_raw` để điều tra. Do view silver deduplicate toàn lịch sử, các truy vấn đo theo một run nên lọc `silver.events_raw` theo phân vùng trước rồi mới `ROW_NUMBER()` trên phần dữ liệu đã lọc; outer filter trên `silver.events` có thể không giảm lượng file được quét. Các view Gold là star schema trên toàn lịch sử. Với truy vấn/extract theo một phân vùng, hãy áp dụng mẫu lọc trước rồi dedup trực tiếp trên `silver.events_raw`; không giả định bộ lọc ngày đặt ngoài `gold.fact_events` hoặc `silver.events` sẽ loại được file trước khi quét.
 
 Đếm toàn bộ event duy nhất sau dedup:
 
@@ -45,6 +45,35 @@ WHERE partition_year = 2026
   AND partition_month = 11
   AND partition_day = 15
   AND partition_hour = 9;
+```
+
+Đếm event hợp lệ, duy nhất trong cùng phân vùng mà vẫn giữ partition pruning: lọc đường dẫn trước khi chạy `ROW_NUMBER()`.
+
+```sql
+WITH partition_events AS
+(
+    SELECT event_id, event_time, EventEnqueuedUtcTime, sent_time
+    FROM silver.events_raw
+    WHERE partition_year = 2026
+      AND partition_month = 11
+      AND partition_day = 15
+      AND partition_hour = 9
+      AND event_id IS NOT NULL
+      AND event_time IS NOT NULL
+), ranked AS
+(
+    SELECT
+        event_id,
+        ROW_NUMBER() OVER
+        (
+            PARTITION BY event_id
+            ORDER BY EventEnqueuedUtcTime DESC, sent_time DESC
+        ) AS duplicate_rank
+    FROM partition_events
+)
+SELECT COUNT_BIG(*) AS unique_event_count
+FROM ranked
+WHERE duplicate_rank = 1;
 ```
 
 Kiểm chứng cloud ngày 17/11/2026: producer ghi nhận gửi 108,735 event trong run này; truy vấn phân vùng cho 108,735 dòng thô, 108,735 `event_id` khác nhau và view `silver.events` cũng có 108,735 dòng. Không có dòng thiếu ID/thời gian hoặc lỗi chuẩn hóa thời gian trong run đó. Toàn bộ lake hiện có 169,736 dòng thô và 127,736 ID khác nhau do chứa nhiều lần replay/test; vì vậy chỉ so sánh số đếm theo run/phân vùng tương ứng, không so tổng lịch sử với một lượt producer.
