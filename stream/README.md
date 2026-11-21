@@ -23,7 +23,7 @@ Input alias `events` đọc bản replay của `test/events_sample.json`. Query 
 
 ## Chạy trên cloud
 
-Job `asa-megasale-dev` dựng bằng Terraform (`infra/stream_analytics.tf`), đọc thẳng `query.asaql`. Alias trên cloud: input `events`, reference `price_list`, `provinces`; outputs `raw_archive` (Parquet) và `kpi_1min` (JSON) vào container `lake` theo `<output>/yyyy/MM/dd/HH`, `kpi_1min_sql` và `pipeline_latency` vào Azure SQL DB, cùng `kpi_1min_powerbi` vào workspace Power BI. Các output KPI dùng chung hợp đồng cột trong `docs/event-schema.md`. Đổi tên alias trong query thì phải đổi cả trong Terraform. Cách tạo bảng/quyền và bật/tắt job xem `infra/README.md`.
+Job `asa-megasale-dev` dựng bằng Terraform (`infra/stream_analytics.tf`), đọc thẳng `query.asaql`. Alias trên cloud: input `events`, reference `price_list`, `provinces`; outputs `raw_archive` (Parquet) và `kpi_1min` (JSON) vào container `lake` theo `<output>/yyyy/MM/dd/HH`, `kpi_1min_sql`, `pipeline_latency` và `alerts_sql` vào Azure SQL DB, `alerts_function` gọi Function `fraud_alert`, cùng `kpi_1min_powerbi` vào workspace Power BI. Các output KPI dùng chung hợp đồng cột trong `docs/event-schema.md`. Đổi tên alias trong query thì phải đổi cả trong Terraform. Cách tạo bảng/quyền và bật/tắt job xem `infra/README.md`.
 
 ### Chính sách event-time trên cloud (#37)
 
