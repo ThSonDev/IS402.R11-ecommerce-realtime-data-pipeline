@@ -89,6 +89,41 @@ price_glitch AS (
         / CAST(r.ref_price_vnd AS float)
     ) > 0.5
 ),
+-- Rule 4 (payment outage): keep one order-count point for every minute with
+-- traffic, including minutes with views but no purchases (count = 0).
+orders_per_minute AS (
+    SELECT
+        System.Timestamp() AS alert_time,
+        COUNT(DISTINCT CASE WHEN event_type = 'purchase' THEN order_id ELSE NULL END) AS order_count
+    FROM ev
+    GROUP BY TUMBLINGWINDOW(minute, 1)
+),
+order_anomaly_scores AS (
+    SELECT
+        alert_time,
+        order_count,
+        -- Do not report model warm-up scores until ten prior minute samples exist.
+        LAG(alert_time, 10) OVER (LIMIT DURATION(minute, 11)) AS history_start,
+        -- Confidence 80, ten prior samples; test results may require tuning.
+        AnomalyDetection_SpikeAndDip(CAST(order_count AS float), 80, 10, 'spikesanddips')
+            OVER (LIMIT DURATION(minute, 10)) AS scores
+    FROM orders_per_minute
+),
+payment_outage AS (
+    SELECT
+        alert_time,
+        'payment_outage' AS rule_name,
+        'system' AS entity_type,
+        CAST(NULL AS nvarchar(max)) AS entity_id,
+        'orders_per_minute' AS metric_name,
+        CAST(order_count AS float) AS metric_value,
+        -- Initial reference value for the alert display; IsAnomaly is the trigger.
+        CAST(90 AS float) AS threshold,
+        CAST(NULL AS nvarchar(max)) AS event_id
+    FROM order_anomaly_scores
+    WHERE history_start IS NOT NULL
+        AND CAST(GetRecordPropertyValue(scores, 'IsAnomaly') AS bigint) = 1
+),
 -- All alert rules share the same 8-column output contract.
 alerts AS (
     SELECT alert_time, rule_name, entity_type, entity_id, metric_name, metric_value, threshold, event_id
@@ -99,6 +134,9 @@ alerts AS (
     UNION
     SELECT alert_time, rule_name, entity_type, entity_id, metric_name, metric_value, threshold, event_id
     FROM price_glitch
+    UNION
+    SELECT alert_time, rule_name, entity_type, entity_id, metric_name, metric_value, threshold, event_id
+    FROM payment_outage
 )
 
 -- One shared KPI aggregation feeds the lake, SQL Database, and Power BI.
