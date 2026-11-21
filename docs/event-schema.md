@@ -140,7 +140,7 @@ Query phải chiếu metadata `EventEnqueuedUtcTime` tường minh từ input Ev
 | `entity_id` | string hoặc null | có | ID đối tượng; null với `system` |
 | `metric_name` | string | có | Tên chỉ số đã vượt điều kiện cảnh báo |
 | `metric_value` | float64 | có | Giá trị đo được |
-| `threshold` | float64 | có | Ngưỡng kích hoạt cảnh báo |
+| `threshold` | float64 | có | Ngưỡng kích hoạt; với luật mô hình thống kê, mốc tham khảo ban đầu được lưu để hiển thị, còn điều kiện kích hoạt do kết quả mô hình quyết định |
 | `event_id` | string (UUID) hoặc null | có | Event đại diện để truy vết; null nếu không có event đơn lẻ phù hợp |
 
 ### `pipeline_latency`

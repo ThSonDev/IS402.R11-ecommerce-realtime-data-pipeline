@@ -91,6 +91,17 @@ docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-s
 
 `stream/test/events_scenarios.json` là bản nhỏ đã commit (5% user, chỉ `bot`, `multi_account`, `price_glitch`, kèm `events_scenarios.scenarios.json`) để thử luật 1–3. Luật 4 cần lưu lượng đơn thật nên phải dùng bản đầy đủ như lệnh trên (khoảng 114,000 event, 68 MB, không commit).
 
+### Replay cloud để kiểm tra luật 2–4 (#62)
+
+Dùng đoạn dữ liệu có sự cố purchase thật, đồng thời để producer phát dữ liệu bình thường hơn 10 phút trước lúc sự cố bắt đầu. Lệnh dưới đây chạy khoảng 30 phút ở `4x`; purchase thật dừng khoảng phút 12.25. Kịch bản nhiều tài khoản và sai giá bắt đầu ở phút 20 và 22, sau khi ASA đã có baseline và quan sát được dip. Không bật synthetic `payment_outage` ở lượt này vì đang kiểm tra khoảng sự cố thật trong dữ liệu.
+
+```powershell
+.venv\Scripts\python producer\main.py --start 2019-11-14T17:20 --end 2019-11-14T19:20 --speed 4 --scenarios multi_account,price_glitch --scenario-start 1200
+# Linux: .venv/bin/python producer/main.py --start 2019-11-14T17:20 --end 2019-11-14T19:20 --speed 4 --scenarios multi_account,price_glitch --scenario-start 1200
+```
+
+Lệnh này cần chạy sau khi ASA job đã khởi động và input Event Hubs sẵn sàng. Trước khi dùng trên cloud, cập nhật query/config theo branch đang kiểm thử; sau lượt test, dừng ASA và dọn Event Hubs bằng workflow `destroy-eventhubs` để tránh phát sinh chi phí.
+
 **Đo throughput:** `scripts/bench_producer.py` chạy producer ở nhiều mức `--rate`, mỗi mức nhiều lần, rồi in bảng (xem [docs/producer-throughput.md](../docs/producer-throughput.md)). Hai biến tùy chọn trong `.env` hoặc môi trường dùng cho thí nghiệm gửi theo lô: `KAFKA_LINGER_MS` (`linger.ms`) và `KAFKA_BATCH_SIZE` (`batch.size`); không đặt thì dùng mặc định của client.
 
 ## Input / Output

@@ -32,3 +32,13 @@ Query cloud dùng `TIMESTAMP BY event_time`; cấu hình đã áp dụng trong T
 `stream/JobConfig.json` có late-arrival tolerance 1,800 giây cho replay tĩnh local; đó là cấu hình riêng cho file quá khứ và không phải cấu hình cloud.
 
 Kết quả chạy cloud và cách đọc metric được ghi tại [docs/event-time-policy.md](../docs/event-time-policy.md). Lượt baseline trước PR #82 dùng tolerance 5/0 giây và query còn hai câu `FROM [events]`; số `LateInputEvents` trong lượt đó không phải số event late duy nhất. Query sau PR #82 dùng chung một CTE từ input `events`.
+
+### Luật cảnh báo 2–4 (#61/#62)
+
+`multi_account` phát cảnh báo khi có hơn 3 tài khoản mới khác nhau dùng cùng thiết bị và voucher trong một cửa sổ 10 phút. `price_glitch` phát cảnh báo khi độ lệch tuyệt đối trung bình giữa giá mua và `price_list` vượt 50% trong một cửa sổ 1 phút. Cả hai luật ghi cùng contract 8 cột với luật bot; `event_id` là `NULL` vì ASA không hỗ trợ `MIN`/`MAX` trên chuỗi để chọn một ID đại diện. CTE `alerts` hợp nhất luật rồi ghi ra cả `alerts_sql` và `alerts_function`.
+
+`payment_outage` đếm distinct `order_id` mỗi phút trên toàn bộ event, không lọc bỏ các phút không có purchase. Khi view/cart vẫn đến, phút không có purchase tạo điểm `0` cho chuỗi đều theo phút. ASA chạy `AnomalyDetection_SpikeAndDip` ở confidence ban đầu 80, `historySize=10`, `LIMIT DURATION(minute,10)`. `LAG` yêu cầu đủ 10 mẫu phút trước khi cho phép phát cảnh báo, tránh báo giả trong lúc mô hình mới khởi động. Output `threshold=90` là mốc đơn/phút tham khảo để hiển thị; điều kiện phát cảnh báo thật là `IsAnomaly=1`, không phải phép so sánh tĩnh với 90.
+
+Đã chạy query bằng ASA Tools LocalRunService với scenario mẫu và dữ liệu giá tham chiếu: hai output alert giống nhau, contract có đủ 8 cột; lượt đó phát 2 cảnh báo `multi_account` và 5 `price_glitch` (ngoài 3 cảnh báo bot). Kiểm thử riêng luật 4 bằng chuỗi tổng hợp gồm 10 phút baseline 90 đơn/phút, sau đó 5 phút không có đơn nhưng còn view: local run không báo `payment_outage` trong baseline và phát cảnh báo ở các phút có count 0. Đây là kiểm chứng logic bằng dữ liệu tổng hợp local, chưa xác nhận khả năng bắt sự cố thật trên cloud.
+
+Để kiểm tra luật 2–4 cùng lượt trên cloud, dùng full dataset để phát lại khoảng sự cố thật. Bắt đầu từ `2019-11-14T17:20` đến `2019-11-14T19:20` với tốc độ `4x`: khoảng 12 phút đầu làm baseline, purchase thật dừng khoảng phút 12.25; đẩy scenario nhiều tài khoản và sai giá sau phút 20 để không làm nhiễu baseline. Lệnh producer mẫu và cách tính thời điểm nằm trong [producer/README.md](../producer/README.md). Sau khi xác minh output, dừng ASA rồi chạy workflow `destroy-eventhubs` theo hướng dẫn của Sơn.
