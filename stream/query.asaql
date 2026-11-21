@@ -22,12 +22,32 @@ kpi AS (
         channel,
         province_code,
         TUMBLINGWINDOW(minute, 1)
+),
+-- Rule 1 (bot): one user with more than 10 distinct purchase orders in a minute.
+-- Threshold is provisional (real baseline max is 7, bot scenario is 20/min); tuned in #72.
+bot AS (
+    SELECT
+        System.Timestamp() AS alert_time,
+        'bot' AS rule_name,
+        'user' AS entity_type,
+        CAST(user_id AS nvarchar(max)) AS entity_id,
+        'orders_per_min' AS metric_name,
+        CAST(COUNT(DISTINCT order_id) AS float) AS metric_value,
+        CAST(10 AS float) AS threshold,
+        CAST(NULL AS nvarchar(max)) AS event_id
+    FROM ev
+    WHERE event_type = 'purchase'
+    GROUP BY user_id, TUMBLINGWINDOW(minute, 1)
+    HAVING COUNT(DISTINCT order_id) > 10
 )
 
 -- One shared KPI aggregation feeds the lake, SQL Database, and Power BI.
 SELECT * INTO [kpi_1min] FROM kpi
 SELECT * INTO [kpi_1min_sql] FROM kpi
 SELECT * INTO [kpi_1min_powerbi] FROM kpi
+
+SELECT * INTO [alerts_sql] FROM bot
+SELECT * INTO [alerts_function] FROM bot
 
 -- Pipeline latency is averaged per event-time minute.
 SELECT

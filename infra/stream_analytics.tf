@@ -131,3 +131,32 @@ resource "azurerm_stream_analytics_output_powerbi" "kpi_1min" {
   dataset                 = "megasale_kpi_1min"
   table                   = "kpi_1min"
 }
+
+# Alerts go to the same SQL database (history, Grafana panels) and to the
+# fraud_alert Function (Telegram). The Function's default host key is read from
+# Azure at plan time and kept only in state (sensitive), never in Git.
+resource "azurerm_stream_analytics_output_mssql" "alerts" {
+  name                      = "alerts_sql"
+  resource_group_name       = data.azurerm_resource_group.main.name
+  stream_analytics_job_name = azurerm_stream_analytics_job.main.name
+  server                    = azurerm_mssql_server.main.fully_qualified_domain_name
+  database                  = azapi_resource.sql_db.name
+  table                     = "dbo.alerts"
+  authentication_mode       = "Msi"
+  max_batch_count           = 1000
+  max_writer_count          = 1
+}
+
+data "azurerm_function_app_host_keys" "main" {
+  name                = azurerm_linux_function_app.main.name
+  resource_group_name = data.azurerm_resource_group.main.name
+}
+
+resource "azurerm_stream_analytics_output_function" "alerts" {
+  name                      = "alerts_function"
+  resource_group_name       = data.azurerm_resource_group.main.name
+  stream_analytics_job_name = azurerm_stream_analytics_job.main.name
+  function_app              = azurerm_linux_function_app.main.name
+  function_name             = "fraud_alert"
+  api_key                   = data.azurerm_function_app_host_keys.main.default_function_key
+}

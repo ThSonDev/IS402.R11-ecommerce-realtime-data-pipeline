@@ -27,3 +27,18 @@ BEGIN
     );
 END;
 GO
+
+IF OBJECT_ID(N'dbo.alerts', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.alerts (
+        alert_time   datetime2(3) NOT NULL,
+        rule_name    nvarchar(32) NOT NULL,
+        entity_type  nvarchar(16) NOT NULL,
+        entity_id    nvarchar(64) NULL,
+        metric_name  nvarchar(64) NOT NULL,
+        metric_value float NOT NULL,
+        threshold    float NOT NULL,
+        event_id     nvarchar(64) NULL
+    );
+END;
+GO
