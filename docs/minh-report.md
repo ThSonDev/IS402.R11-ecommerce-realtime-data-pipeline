@@ -71,7 +71,7 @@ Với 1 TU, giới hạn có tác dụng là dung lượng (1 MB/giây) chứ kh
 | Tỷ lệ chuyển đổi theo session (có purchase / có view) | 5.62% |
 | Giờ cao điểm | 08–10 UTC |
 | User có nhiều loại event trong cùng một giây | 41,287 trường hợp (dataset chỉ chính xác đến giây) |
-| Mốc cho luật | User thật tối đa 7 đơn / phút; giá một sản phẩm dao động tới 1.67 lần (p99) |
+| Mốc cho luật | Một user thật có tối đa 7 dòng purchase nhưng chỉ tối đa 3 đơn khác nhau trong một phút (cả tháng); giá một sản phẩm dao động tới 1.67 lần (p99) |
 | Sự cố thật | Không có purchase nào trong hai đoạn 2019-11-14 18:09 → 2019-11-16 08:32 UTC (khoảng 38 giờ) và 2019-11-16 15:34 → 2019-11-17 03:43 UTC (khoảng 12 giờ), dù lượt xem vẫn 150,000–340,000 / giờ; giữ nguyên làm ca kiểm thử cho luật 4 |
 
 **Xử lý và làm giàu** (chi tiết và mọi giả định: [producer/README.md](../producer/README.md)):
@@ -85,7 +85,7 @@ Với 1 TU, giới hạn có tác dụng là dung lượng (1 MB/giây) chứ kh
 
 | Kịch bản | Mô phỏng | Mức độ so với dữ liệu thật |
 |---|---|---|
-| `bot` | 3 user giả, mỗi user 20 đơn trong 1 phút | User thật tối đa 7 đơn / phút |
+| `bot` | 3 user giả, mỗi user 20 đơn trong 1 phút | User thật tối đa 3 đơn (7 dòng purchase) / phút |
 | `multi_account` | 2 thiết bị, mỗi thiết bị 6 tài khoản mới cùng dùng voucher `NEWMEMBER` trong 5 phút | Mỗi user thật có thiết bị riêng |
 | `price_glitch` | 3 sản phẩm giá ≥ 5 triệu VND, mỗi sản phẩm 5 đơn ở 10–30% giá tham chiếu | Giá thật lệch tối đa 1.67 lần (p99) |
 | `payment_outage` | Mọi purchase trả bằng `cod` biến mất trong 10 phút | Số đơn / phút giảm khoảng 40% |
@@ -94,17 +94,77 @@ Trên đoạn 2019-11-01 09:00–10:30 (`--speed 4`, 113,928 event), dữ liệu
 
 ## Đánh giá 4 luật
 
-**(chờ)** luật của Thắng (#61, #62), output `alerts` (#85) và buổi chạy đủ kịch bản (#86).
+Dữ liệu: buổi chạy cloud ngày 22/11/2026 (#86, chi tiết cấu hình và độ trễ trong [e2e-run.md](e2e-run.md)). Số dưới đây được tính lại từ `lake/eval/2026-11-22/` (alert xuất từ `dbo.alerts` và file ground truth của producer) bằng `analysis/evaluate_rules.py`, khớp với số trong e2e-run.md.
 
-**Phương pháp** (`analysis/evaluate_rules.py`): so `alerts` (xuất từ `dbo.alerts`) với file ground truth producer ghi trong lần chạy.
+| Lượt | Dữ liệu (`--speed 4`) | Kịch bản | Query |
+|---|---|---|---|
+| A | 2019-11-01 09:00–10:30, 113,928 event, 5% trễ | cả 4 | Bản cũ |
+| A2 | Như A | cả 4 | Bản đã sửa theo định nghĩa luật (#101, e2e-run.md mục 1) |
+| B | 2019-11-14 17:20–19:20, 498,298 event | `multi_account`, `price_glitch` + sự cố thật (purchase về 0 từ 10:39:19) | Bản đã sửa |
 
-- Luật 1–3 tính theo **đối tượng**: precision = số đối tượng bị báo mà đúng là của kịch bản / số đối tượng bị báo; recall = số đối tượng của kịch bản bị báo / số đối tượng của kịch bản. Đối tượng là user (luật 1), thiết bị (luật 2), sản phẩm (luật 3).
-- Luật 4 tính theo **thời gian**: precision = số cảnh báo rơi vào khoảng sự cố (cho phép trễ 2 phút) / tổng cảnh báo; recall = số khoảng sự cố có ít nhất một cảnh báo / số khoảng sự cố. Khoảng sự cố gồm `payment_outage` và, khi replay đoạn có sự cố thật (purchase dừng lúc 2019-11-14 18:09 UTC), cả khoảng đó trên trục `event_time` của lần chạy (`--incident`).
+Luật như đang chạy trong `stream/query.asaql` (bản sửa; khác biệt của lượt A ghi trong ngoặc):
 
-Công cụ đã được kiểm tra bằng 4 luật giả lập bằng DuckDB theo ngưỡng gợi ý trong plan/Thang.md, trên file 09:00–10:30 ở trên. Kết quả này **chỉ để kiểm tra công cụ**, không phải kết quả của các luật ASA: luật 1–3 bắt đủ và không báo nhầm; luật 4 bắt được sự cố nhưng có 1 báo nhầm ở phút cuối của dữ liệu (phút chỉ có một phần nên số đơn thấp). Đây là loại báo nhầm cần lưu ý khi đánh giá luật thật.
+| Luật | Điều kiện báo | Cửa sổ |
+|---|---|---|
+| 1. Bot | > 10 đơn khác nhau / user | Tumbling 1 phút |
+| 2. Nhiều tài khoản | > 3 tài khoản mới / thiết bị | Hopping 10 phút, bước 1 phút (A: tumbling 10 phút) |
+| 3. Sai giá | Giá bán thấp hơn giá tham chiếu quá 50% (A: lệch cả hai chiều) | Tumbling 1 phút / sản phẩm |
+| 4. Sự cố | `AnomalyDetection_SpikeAndDip(số đơn / phút, 80, 10, 'dips')` (A: `'spikesanddips'`) | 1 phút |
 
-**Hạn chế của cách đánh giá:**
+### Kết quả
 
-- Gian lận do nhóm tự tạo theo đúng 4 kiểu đã định nghĩa, và khá "mạnh" (ví dụ bot 20 đơn / phút so với tối đa 7 của người thật). Precision / recall cao chỉ cho thấy luật bắt được đúng các kiểu này, không chứng minh luật hiệu quả với gian lận thật, vốn đa dạng hơn và thường cố tình né ngưỡng.
-- Để đánh giá sát hơn khi chỉnh ngưỡng (#72), nên chạy thêm kịch bản yếu hơn, ví dụ giảm `BOT_ORDERS` trong `producer/scenarios.py` xuống 8–10.
-- Ground truth luật 1–3 là đối tượng do kịch bản tạo; người thật có hành vi giống gian lận (ví dụ mua 7 đơn / phút) bị tính là báo nhầm dù có thể đáng nghi.
+| Luật (đơn vị chấm) | A: precision / recall | A2: precision / recall | B: precision / recall |
+|---|---|---|---|
+| 1. Bot (user) | 100% / 100% (3 / 3) | 100% / 100% (3 / 3) | không có kịch bản |
+| 2. Nhiều tài khoản (thiết bị) | 100% / **50%** (1 / 2) | 100% / 100% (2 / 2) | 100% / 100% (2 / 2) |
+| 3. Sai giá (sản phẩm) | **60%** / 100% (3 đúng / 5) | 100% / 100% (3 / 3) | 100% / 100% (3 / 3) |
+| 4. Sự cố (khoảng thời gian) | **40%** / 100% (2 / 5 cảnh báo) | – / **0%** (0 cảnh báo) | 100% / 100% (1 cảnh báo) |
+
+Thời gian từ khi gian lận đủ điều kiện đến cảnh báo đầu tiên (lượt A2 và B; `alert_time` là thời điểm đóng cửa sổ trên trục `event_time`, chưa tính độ trễ pipeline khoảng 130 ms):
+
+| Luật | Bắt đầu | Cảnh báo đầu tiên | Độ trễ phát hiện |
+|---|---|---|---|
+| 1. Bot (A2) | Đơn đầu 10:01:14 | 10:02:00 | 46 giây |
+| 2. Nhiều tài khoản (A2) | Tài khoản thứ 4 của `dev_2ec235002de4` lúc 10:04:29 | 10:05:00 | 31 giây |
+| 2. Nhiều tài khoản (A, tumbling) | Tài khoản thứ 4 của `dev_0d39e1dce23a` lúc 09:32:49 | 09:40:00 | khoảng 7 phút |
+| 3. Sai giá (A2) | Đơn giá thấp đầu tiên 10:05:14 | 10:06:00 | 46 giây |
+| 4. Sự cố thật (B) | Purchase về 0 lúc 10:39:19 | 10:41:00 | 1 phút 41 giây |
+
+### Phân tích báo nhầm và bỏ sót
+
+**Luật 1 (bot).** Bắt đủ 3 bot ở cả hai lượt, không báo nhầm.
+
+- Không có báo nhầm trên dữ liệu thật là có cơ sở: tính trên cả tháng 11, một user thật có **tối đa 3 đơn khác nhau trong một phút**, không user-phút nào ≥ 5 đơn. Ngưỡng > 10 cách xa hành vi thật.
+- **Rủi ro bỏ sót do cắt cửa sổ.** Giá trị đo của bot là 19 (A) và 16 (A2), không phải 20, vì 20 đơn trải trong 60 giây rơi vào hai cửa sổ tumbling 1 phút (A: 19 + 1, A2: 16 + 4). Hai lượt này vẫn vượt 10, nhưng nếu bot bắt đầu đúng giữa phút thì bị cắt 10 + 10 và **lọt hoàn toàn** vì điều kiện là > 10. Đây là cùng loại lỗi đã làm luật 2 bỏ sót ở lượt A.
+- Đề xuất cho #72: dùng cửa sổ hopping (ví dụ 60 giây, bước 10 giây) như đã làm với luật 2, hoặc hạ ngưỡng. Vì người thật tối đa 3 đơn / phút, ngưỡng > 5 vẫn không báo nhầm trên cả tháng mà giảm hẳn rủi ro cắt cửa sổ.
+
+**Luật 2 (nhiều tài khoản mới trên một thiết bị).**
+
+- **Bỏ sót ở lượt A** (`dev_2ec235002de4`): 6 tài khoản tạo lúc 09:29:04–09:31:09, cửa sổ tumbling 10 phút cắt ở 09:30 thành 3 + 3. Điều kiện > 3 cần 4 tài khoản trong cùng cửa sổ nên không báo. Thiết bị còn lại (6 tài khoản trong 09:31:34–09:33:39) nằm gọn trong một cửa sổ nên bị bắt, nhưng chỉ khi cửa sổ đóng (09:40), khoảng 7 phút sau tài khoản thứ 4.
+- **Sau khi đổi sang hopping (A2, B):** bắt đủ 2 thiết bị, cảnh báo ngay khi có tài khoản thứ 4 (31 giây và 1 giây sau). Đổi lại mỗi thiết bị sinh khoảng 10 dòng cảnh báo (một dòng mỗi bước 1 phút còn đủ 4 tài khoản): 20 dòng cho 2 thiết bị ở A2. Chấm theo thiết bị nên precision không đổi, và Function `fraud_alert` chặn lặp 10 phút nên mỗi thiết bị chỉ ra **một** tin Telegram (dòng đầu và cuối của một thiết bị cách nhau 9 phút).
+- **Không báo nhầm, nhưng phần lớn do giả định mô phỏng:** producer gán mỗi user thật một thiết bị riêng, nên dữ liệu thật không thể có nhiều tài khoản trên một thiết bị. Precision 100% của luật 2 vì vậy chưa nói lên khả năng tránh báo nhầm với thiết bị dùng chung thật (gia đình, máy công cộng).
+
+**Luật 3 (sai giá).**
+
+- **Báo nhầm ở lượt A:** 2 sản phẩm thật bị báo vì giá **cao** hơn giá tham chiếu (`12704397` bán khoảng 1.98 lần, `2500566` khoảng 1.50 lần với tỷ lệ lệch 0.5003, sát ngưỡng 0.5). Luật cũ lấy độ lệch tuyệt đối nên coi giá cao cũng là sai giá. Bỏ `ABS` (chỉ báo giá thấp) loại được cả hai; A2 và B không còn báo nhầm.
+- **Ước tính báo nhầm trên cả tháng** (dữ liệu thật, giá tham chiếu = trung vị giá dương của tháng): luật mới sẽ báo **231 đơn thật (66 sản phẩm)**, tức 0.025% trong 916,930 đơn; mỗi ngày trung vị 4 đơn (0–35). Luật cũ hai chiều sẽ báo 1,140 đơn (291 sản phẩm), gấp khoảng 5 lần. Các đơn này là giảm giá sâu thật hoặc sản phẩm có giá dao động mạnh; theo nhãn của nhóm chúng là báo nhầm, dù một phần có thể đáng kiểm tra. Đoạn dữ liệu của lượt A2 và B tình cờ không có đơn nào như vậy.
+- **Không bỏ sót:** đơn của kịch bản bán ở 10–30% giá tham chiếu, tức lệch 0.70–0.90, xa ngưỡng 0.5. Mỗi sản phẩm ra 1–2 dòng cảnh báo vì 5 đơn của nó trải qua 2 phút (A2: 5 dòng cho 3 sản phẩm).
+
+**Luật 4 (sự cố số đơn).**
+
+- **Lượt A (`'spikesanddips'`):** cả 5 cảnh báo đều nằm **sau** sự cố giả lập (09:33:04–09:43:04). Bốn cảnh báo 09:44–09:47 (89–101 đơn / phút) là đỉnh khi số đơn hồi phục, không phải phát hiện sự cố; 2 trong số đó được tính là đúng chỉ vì nằm trong 2 phút dung sai của công cụ chấm. Cảnh báo 09:49 (57 đơn / phút) là phút cuối của lượt chạy (kết thúc 09:49:24), phút chỉ có một phần nên số đơn thấp, đúng loại báo nhầm đã thấy khi kiểm tra công cụ. Thực chất lượt A **không bắt được** sự cố giả lập.
+- **Lượt A2 (`'dips'`, độ tin cậy 80):** 0 cảnh báo. Sự cố giả lập chỉ làm số đơn giảm khoảng 40% (từ khoảng 100–120 xuống khoảng 65 đơn / phút), mô hình không coi là bất thường ở mức tin cậy 80. **Bỏ sót.**
+- **Lượt B (sự cố thật, số đơn về 0):** 1 cảnh báo lúc 10:41 (0 đơn / phút), 1 phút 41 giây sau khi purchase biến mất, không báo nhầm. Nhưng chỉ có **một** cảnh báo cho khoảng 18 phút sự cố: sau điểm bất thường đầu, mô hình (lịch sử 10 phút) dần coi 0 là bình thường.
+- Kết luận: `AnomalyDetection_SpikeAndDip` bắt được sụp đổ đột ngột về 0 nhưng bỏ qua sụt giảm một phần (một phương thức thanh toán mất), và không báo lại khi sự cố kéo dài. Đề xuất cho #72: (1) hạ độ tin cậy và chạy lại A2 để xem đánh đổi với báo nhầm; (2) thêm luật đơn giản bổ trợ, ví dụ số đơn / phút dưới một tỷ lệ so với trung bình trượt trong N phút liên tục, để bắt sụt giảm một phần và báo trong suốt sự cố; (3) với sự cố cổng thanh toán, đếm đơn theo `payment_method`: một phương thức về 0 trong khi các phương thức khác vẫn có đơn là dấu hiệu trực tiếp nhất.
+
+### Kiểm tra công cụ trước buổi chạy
+
+Trước khi có luật ASA, công cụ đã được kiểm tra bằng 4 luật giả lập bằng DuckDB theo ngưỡng gợi ý trong plan/Thang.md, trên file 09:00–10:30: luật 1–3 bắt đủ và không báo nhầm; luật 4 có 1 báo nhầm ở phút cuối của dữ liệu. Buổi chạy thật lặp lại đúng hiện tượng phút cuối này (cảnh báo 09:49 ở lượt A).
+
+### Hạn chế
+
+- Gian lận do nhóm tự tạo theo đúng 4 kiểu đã định nghĩa, và khá "mạnh" (bot 20 đơn / phút so với tối đa 3 đơn của người thật). Precision / recall cao chỉ cho thấy luật bắt được đúng các kiểu này, không chứng minh luật hiệu quả với gian lận thật, vốn đa dạng hơn và thường cố tình né ngưỡng. Nên chạy thêm kịch bản yếu hơn khi chỉnh ngưỡng (#72), ví dụ giảm `BOT_ORDERS` trong `producer/scenarios.py` xuống 8–12.
+- Mỗi cấu hình chỉ chạy một lần; vị trí kịch bản so với ranh giới cửa sổ (yếu tố quyết định ở luật 1 và luật 2 bản tumbling) chỉ được thử ở vài điểm.
+- Ground truth luật 1–3 là đối tượng do kịch bản tạo; người thật có hành vi giống gian lận bị tính là báo nhầm dù có thể đáng nghi. Luật 2 không thể báo nhầm trên dữ liệu thật vì giả định một user một thiết bị.
+- Alert được xuất theo khoảng giờ của từng lượt, nên đuôi cảnh báo của lượt trước có thể lẫn vào lượt sau (e2e-run.md mục 5). Lượt B có 17 dòng `multi_account` trong file CSV nhưng 16 trong SQL; chấm theo thiết bị nên không đổi kết quả.
+- Dung sai 2 phút của luật 4 có thể tính nhầm đỉnh hồi phục ngay sau sự cố là phát hiện đúng (lượt A). Với luật chỉ báo `'dips'` thì không còn ảnh hưởng.
