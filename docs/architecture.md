@@ -24,7 +24,7 @@ Cách đọc hình: khung ngoài (nét chấm) là ranh giới hệ thống; Kag
 1. Bot gom hàng: 1 user > N đơn / 1 phút (window + `COUNT` theo user).
 2. Săn voucher: 1 `device_id` ↔ nhiều tài khoản mới (`COUNT(DISTINCT)` trong window).
 3. Sai giá so với giá tham chiếu (JOIN reference data `price_list`).
-4. Số đơn/phút tăng hoặc giảm bất thường (`AnomalyDetection_SpikeAndDip`).
+4. Số đơn/phút giảm bất thường (`AnomalyDetection_SpikeAndDip`, mode `dips`).
 
 Cùng job còn tính KPI 1 phút theo sàn × tỉnh (view, cart, purchase, đơn, GMV). Job dùng `TIMESTAMP BY event_time`, chịu event đến trễ và sai thứ tự 60 s (late arrival / out-of-order), query nằm trong Git (`stream/query.asaql`).
 

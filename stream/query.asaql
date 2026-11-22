@@ -59,11 +59,11 @@ multi_account AS (
     GROUP BY
         device_id,
         voucher_code,
-        TUMBLINGWINDOW(minute, 10)
+        HOPPINGWINDOW(minute, 10, 1)
     HAVING COUNT(DISTINCT user_id) > 3
 ),
--- Rule 3 (price mismatch): alert when the mean absolute deviation from the
--- reference price exceeds 50% for a product in a one-minute purchase window.
+-- Rule 3 (price mismatch): alert when the mean price is more than 50% below the
+-- reference price for a product in a one-minute purchase window (selling at a loss).
 price_glitch AS (
     SELECT
         System.Timestamp() AS alert_time,
@@ -72,7 +72,7 @@ price_glitch AS (
         CAST(e.product_id AS nvarchar(max)) AS entity_id,
         'price_deviation_ratio' AS metric_name,
         CAST(AVG(
-            ABS(CAST(e.price_vnd AS float) - CAST(r.ref_price_vnd AS float))
+            (CAST(r.ref_price_vnd AS float) - CAST(e.price_vnd AS float))
             / CAST(r.ref_price_vnd AS float)
         ) AS float) AS metric_value,
         CAST(0.5 AS float) AS threshold,
@@ -85,7 +85,7 @@ price_glitch AS (
         AND CAST(r.ref_price_vnd AS float) > 0
     GROUP BY e.product_id, TUMBLINGWINDOW(minute, 1)
     HAVING AVG(
-        ABS(CAST(e.price_vnd AS float) - CAST(r.ref_price_vnd AS float))
+        (CAST(r.ref_price_vnd AS float) - CAST(e.price_vnd AS float))
         / CAST(r.ref_price_vnd AS float)
     ) > 0.5
 ),
@@ -105,7 +105,7 @@ order_anomaly_scores AS (
         -- Do not report model warm-up scores until ten prior minute samples exist.
         LAG(alert_time, 10) OVER (LIMIT DURATION(minute, 11)) AS history_start,
         -- Confidence 80, ten prior samples; test results may require tuning.
-        AnomalyDetection_SpikeAndDip(CAST(order_count AS float), 80, 10, 'spikesanddips')
+        AnomalyDetection_SpikeAndDip(CAST(order_count AS float), 80, 10, 'dips')
             OVER (LIMIT DURATION(minute, 10)) AS scores
     FROM orders_per_minute
 ),
