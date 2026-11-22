@@ -1,15 +1,20 @@
-relationship 758c939a-dd6e-4c1b-a64e-ce0321eb62f0
-	joinOnDateBehavior: datePartOnly
-	fromColumn: events_1day.event_time
-	toColumn: LocalDateTable_47091b6a-237d-46f0-a7a1-be8a53e9919e.Date
+relationship AutoDetected_28940b29-be3d-44dc-a87b-05020ef0649e
+	fromColumn: 'gold fact_events'.channel_key
+	toColumn: 'gold dim_channel'.channel_key
 
-relationship 61afb431-8867-4253-b99f-cba8022c42ae
-	joinOnDateBehavior: datePartOnly
-	fromColumn: events_1day.original_time
-	toColumn: LocalDateTable_3981b20b-b401-4e44-a742-8acdb549f317.Date
+relationship AutoDetected_e678aa24-a7d9-4afe-8c38-4c9e74bebf45
+	fromColumn: 'gold fact_events'.date_key
+	toColumn: 'gold dim_date'.date_key
 
-relationship 61c5d026-8080-44cd-bead-d67f1ce7a27a
-	joinOnDateBehavior: datePartOnly
-	fromColumn: events_1day.sent_time
-	toColumn: LocalDateTable_c475850f-8b1d-474f-89f3-0961f7003f27.Date
+relationship AutoDetected_a01623d9-9ef0-4f5d-bd72-e4b3b9b301c5
+	fromColumn: 'gold fact_events'.payment_key
+	toColumn: 'gold dim_payment'.payment_key
+
+relationship AutoDetected_3969cf24-4181-44d8-bd88-88d584a7903b
+	fromColumn: 'gold fact_events'.province_key
+	toColumn: 'gold dim_province'.province_key
+
+relationship 09ec37dd-d157-0777-d6cb-4b0cc635745a
+	fromColumn: 'gold fact_events'.product_key
+	toColumn: 'gold dim_product'.product_id
 

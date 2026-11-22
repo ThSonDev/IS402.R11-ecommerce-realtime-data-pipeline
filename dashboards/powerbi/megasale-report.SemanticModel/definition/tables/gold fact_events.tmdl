@@ -1,0 +1,228 @@
+table 'gold fact_events'
+	lineageTag: 0030f343-ff33-40b7-b8b2-b7f736926112
+
+	measure GMV = CALCULATE(SUM('gold fact_events'[price_vnd]), 'gold fact_events'[event_type] = "purchase")
+		formatString: #,0
+		lineageTag: 8821e046-2b3a-4091-b1c6-b5aa7fd264cd
+
+	measure Orders = CALCULATE(DISTINCTCOUNT('gold fact_events'[order_id]), 'gold fact_events'[event_type] = "purchase")
+		formatString: 0
+		lineageTag: 759ac446-bc3d-4080-83de-20324ee4e7b5
+
+	measure AOV = DIVIDE([GMV], [Orders])
+		formatString: #,0
+		lineageTag: 29089759-924a-45aa-b27f-9c22e667e0e3
+
+	measure 'Fraud Orders' = CALCULATE(DISTINCTCOUNT('gold fact_events'[order_id]), 'gold fact_events'[event_type] = "purchase", 'gold fact_events'[is_fraud] = TRUE())
+		formatString: 0
+		lineageTag: 4b080dff-b6d4-4c27-b35b-a68daeeb0f3b
+
+	measure 'Fraud Order Rate' = DIVIDE([Fraud Orders], [Orders])
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 159aabf4-7e62-4efd-b0f1-f7eda15b0bca
+
+	measure 'Sessions Viewed' = CALCULATE(DISTINCTCOUNT('gold fact_events'[session_id]), 'gold fact_events'[event_type] = "view")
+		formatString: 0
+		lineageTag: 20584e21-5889-4e95-8d6c-18ad341c6f0d
+
+	measure 'Sessions Purchased' = CALCULATE(DISTINCTCOUNT('gold fact_events'[session_id]), 'gold fact_events'[event_type] = "purchase")
+		formatString: 0
+		lineageTag: e084ebe6-a2f3-4505-8d0a-6b5059e2cc7c
+
+	measure 'Conversion Rate' = DIVIDE([Sessions Purchased], [Sessions Viewed])
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: aa26f4bc-874c-46bf-8adf-b33ff3c52bf3
+
+	measure 'Late Events' = CALCULATE(COUNTROWS('gold fact_events'), 'gold fact_events'[is_late] = TRUE())
+		formatString: 0
+		lineageTag: d470819e-85e4-428f-976d-1b611aef0f9f
+
+	measure 'Fraud Labeled Events' = CALCULATE(COUNTROWS('gold fact_events'), 'gold fact_events'[is_fraud] = TRUE(), 'gold fact_events'[scenario] = SELECTEDVALUE(Loai[Loai]))
+		formatString: 0
+		lineageTag: 9dac1dac-821a-4af9-bde2-14f79a8e51bc
+
+	measure 'Rule Alerts' = CALCULATE(COUNTROWS(alerts), alerts[rule_name] = SELECTEDVALUE(Loai[Loai]))
+		formatString: 0
+		lineageTag: 19e6dc92-38ca-4c4c-b290-a64d6391892f
+
+	column event_id
+		dataType: string
+		lineageTag: ff7ec993-01a4-4018-a33b-c5cf266b49eb
+		summarizeBy: none
+		sourceColumn: event_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column date_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 4898f0ea-7ea6-44f7-a05c-623ecacea02e
+		summarizeBy: none
+		sourceColumn: date_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_key
+		dataType: int64
+		formatString: 0
+		lineageTag: f926b62d-474c-4eb6-b561-b607f20bbdc8
+		summarizeBy: none
+		sourceColumn: product_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column channel_key
+		dataType: string
+		lineageTag: 12474fb6-4767-47b7-920e-3e26801ac15d
+		summarizeBy: none
+		sourceColumn: channel_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column province_key
+		dataType: string
+		lineageTag: e4f41ae8-8fe8-492b-abae-7dc596d37842
+		summarizeBy: none
+		sourceColumn: province_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column payment_key
+		dataType: string
+		lineageTag: 172913c7-cc33-46d1-b2bd-de52c8d75ea8
+		summarizeBy: none
+		sourceColumn: payment_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column event_time
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 6d77d7d7-7230-4cd1-aa8b-79eca28ca931
+		summarizeBy: none
+		sourceColumn: event_time
+
+		annotation SummarizationSetBy = Automatic
+
+	column event_type
+		dataType: string
+		lineageTag: c1697118-3ab3-4a04-998c-9df1016f1a4b
+		summarizeBy: none
+		sourceColumn: event_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column user_id
+		dataType: int64
+		formatString: 0
+		lineageTag: fd0d07df-31c9-4ba5-ac3e-542db6d015c2
+		summarizeBy: sum
+		sourceColumn: user_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column session_id
+		dataType: string
+		lineageTag: b663bd29-f092-47e7-a628-659da25335dd
+		summarizeBy: none
+		sourceColumn: session_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_id
+		dataType: string
+		lineageTag: 7b058aee-fb23-4c72-95f7-62828ccc7d36
+		summarizeBy: none
+		sourceColumn: order_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column price_vnd
+		dataType: int64
+		formatString: 0
+		lineageTag: c359064b-e035-4b45-a48c-f93350b69455
+		summarizeBy: sum
+		sourceColumn: price_vnd
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_fraud
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: a8f45dc2-729c-4b53-a8a8-768dd7a2ce93
+		summarizeBy: none
+		sourceColumn: is_fraud
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_late
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 12af1336-5f35-4f71-87c1-f5bcbf056373
+		summarizeBy: none
+		sourceColumn: is_late
+
+		annotation SummarizationSetBy = Automatic
+
+	column scenario
+		dataType: string
+		lineageTag: 4757bb1f-ee9c-4b60-b54f-cb0bb28ab05f
+		summarizeBy: none
+		sourceColumn: scenario
+
+		annotation SummarizationSetBy = Automatic
+
+	column partition_year
+		dataType: int64
+		formatString: 0
+		lineageTag: 955bf0ac-9b37-48bc-a8c6-8bc16817a48e
+		summarizeBy: sum
+		sourceColumn: partition_year
+
+		annotation SummarizationSetBy = Automatic
+
+	column partition_month
+		dataType: int64
+		formatString: 0
+		lineageTag: d195bad7-cc0c-4a2d-8079-5e1a3844ed04
+		summarizeBy: sum
+		sourceColumn: partition_month
+
+		annotation SummarizationSetBy = Automatic
+
+	column partition_day
+		dataType: int64
+		formatString: 0
+		lineageTag: 0d398daa-7551-4e51-b2fc-42b1fe30e5e4
+		summarizeBy: sum
+		sourceColumn: partition_day
+
+		annotation SummarizationSetBy = Automatic
+
+	column partition_hour
+		dataType: int64
+		formatString: 0
+		lineageTag: 39636cc9-3c7b-4b2f-bf3e-e9dc21141741
+		summarizeBy: sum
+		sourceColumn: partition_hour
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Event Minute' = DATE(YEAR('gold fact_events'[event_time]), MONTH('gold fact_events'[event_time]), DAY('gold fact_events'[event_time])) + TIME(HOUR('gold fact_events'[event_time]), MINUTE('gold fact_events'[event_time]), 0)
+		formatString: General Date
+		lineageTag: ceb03915-4af3-43a4-b010-f560b8ff9fe4
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'gold fact_events' = m
+		mode: import
+		source =
+				let
+				  Source = Sql.Database("synw-megasale-dev-ondemand.sql.azuresynapse.net", "megasale_warehouse"),
+				  #"Navigation 1" = Source{[Schema = "gold", Item = "fact_events"]}[Data]
+				in
+				  #"Navigation 1"
+
+	annotation PBI_ResultType = Table
+

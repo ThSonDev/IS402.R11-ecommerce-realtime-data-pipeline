@@ -1,0 +1,17 @@
+table Loai
+	lineageTag: 6e408c71-54e7-4d90-9d9f-fde1d6402f76
+
+	column Loai
+		lineageTag: dd7cac5d-a506-49b8-8dce-f8473e9ca02d
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Loai]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Loai = calculated
+		mode: import
+		source = DATATABLE("Loai", STRING, {{"bot"}, {"multi_account"}, {"price_glitch"}, {"payment_outage"}})
+
+	annotation PBI_Id = 0d4c6e9a787b484db825b2529bee18a4
+

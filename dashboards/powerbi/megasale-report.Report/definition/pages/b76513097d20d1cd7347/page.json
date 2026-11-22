@@ -1,0 +1,15 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+  "name": "b76513097d20d1cd7347",
+  "displayName": "4. Gian lận và sự cố",
+  "displayOption": "FitToPage",
+  "height": 1080,
+  "width": 1920,
+  "visualInteractions": [
+    {
+      "source": "091fb0f912ae1e9521ba",
+      "target": "ff0d85d2327a27c0b845",
+      "type": "DataFilter"
+    }
+  ]
+}

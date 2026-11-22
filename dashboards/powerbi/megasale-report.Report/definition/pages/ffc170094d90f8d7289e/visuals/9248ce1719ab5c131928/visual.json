@@ -1,13 +1,13 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
-  "name": "de9b545e933eb8e70672",
+  "name": "9248ce1719ab5c131928",
   "position": {
-    "x": 10.212765957446809,
-    "y": 280.12158054711244,
-    "z": 2,
-    "height": 280,
-    "width": 280,
-    "tabOrder": 2
+    "x": 1297.0212765957447,
+    "y": 182.370820668693,
+    "z": 2000,
+    "height": 605.47112462006078,
+    "width": 622.97872340425533,
+    "tabOrder": 2000
   },
   "visual": {
     "visualType": "clusteredColumnChart",
@@ -20,13 +20,13 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "events_1day"
+                      "Entity": "gold dim_channel"
                     }
                   },
                   "Property": "channel"
                 }
               },
-              "queryRef": "events_1day.channel",
+              "queryRef": "gold dim_channel.channel",
               "nativeQueryRef": "channel",
               "active": true
             }
@@ -39,13 +39,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "events_1day"
+                      "Entity": "gold fact_events"
                     }
                   },
                   "Property": "GMV"
                 }
               },
-              "queryRef": "events_1day.GMV",
+              "queryRef": "gold fact_events.GMV",
               "nativeQueryRef": "GMV"
             }
           ]
@@ -58,7 +58,7 @@
               "Measure": {
                 "Expression": {
                   "SourceRef": {
-                    "Entity": "events_1day"
+                    "Entity": "gold fact_events"
                   }
                 },
                 "Property": "GMV"
@@ -70,38 +70,35 @@
         "isDefaultSort": true
       }
     },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'GMV theo sàn'"
+                }
+              }
+            },
+            "fontFamily": {
+              "expr": {
+                "Literal": {
+                  "Value": "'''Times New Roman'''"
+                }
+              }
+            },
+            "bold": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
     "drillFilterOtherVisuals": true
-  },
-  "filterConfig": {
-    "filters": [
-      {
-        "name": "3b8f0266b6d0fc7ff4ac",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "events_1day"
-              }
-            },
-            "Property": "GMV"
-          }
-        },
-        "type": "Advanced"
-      },
-      {
-        "name": "aaa3f917e712d5101dc2",
-        "field": {
-          "Column": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "events_1day"
-              }
-            },
-            "Property": "channel"
-          }
-        },
-        "type": "Categorical"
-      }
-    ]
   }
 }

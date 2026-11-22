@@ -1,0 +1,125 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "name": "fc435169eb6df298a42d",
+  "position": {
+    "x": 18.966565349544073,
+    "y": 16.048632218844986,
+    "z": 0,
+    "height": 798.05471124620055,
+    "width": 990.63829787234044,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "map",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "gold dim_province"
+                    }
+                  },
+                  "Property": "Province Location"
+                }
+              },
+              "queryRef": "gold dim_province.Province Location",
+              "nativeQueryRef": "Province Location",
+              "active": true
+            }
+          ]
+        },
+        "Size": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "gold fact_events"
+                    }
+                  },
+                  "Property": "GMV"
+                }
+              },
+              "queryRef": "gold fact_events.GMV",
+              "nativeQueryRef": "GMV"
+            }
+          ]
+        },
+        "X": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "gold dim_province"
+                        }
+                      },
+                      "Property": "Lon"
+                    }
+                  },
+                  "Function": 1
+                }
+              },
+              "queryRef": "Avg(gold dim_province.Lon)",
+              "nativeQueryRef": "Average of Lon"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "gold dim_province"
+                        }
+                      },
+                      "Property": "Lat"
+                    }
+                  },
+                  "Function": 1
+                }
+              },
+              "queryRef": "Avg(gold dim_province.Lat)",
+              "nativeQueryRef": "Average of Lat"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'GMV theo tỉnh'"
+                }
+              }
+            },
+            "fontFamily": {
+              "expr": {
+                "Literal": {
+                  "Value": "'''Times New Roman'''"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

@@ -1,0 +1,77 @@
+table 'gold dim_province'
+	lineageTag: 7ec278e3-7ec0-4b2d-a504-2dbb364db09a
+
+	column province_key
+		dataType: string
+		lineageTag: aa65e54e-0152-4086-adac-4b5bad08c5ab
+		summarizeBy: none
+		sourceColumn: province_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column province_code
+		dataType: string
+		lineageTag: 84821b80-fad8-40b4-947f-02c4d7b7a983
+		summarizeBy: none
+		sourceColumn: province_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column province_name
+		dataType: string
+		lineageTag: a80b2f1a-1579-4516-88b8-1bf1356d0b6d
+		summarizeBy: none
+		sourceColumn: province_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column region
+		dataType: string
+		lineageTag: a239e02b-bdbd-442c-9cb8-cd2c9f9aa3b9
+		summarizeBy: none
+		sourceColumn: region
+
+		annotation SummarizationSetBy = Automatic
+
+	column population
+		dataType: int64
+		formatString: 0
+		lineageTag: f484944d-1a95-4f73-82b7-59545bb98cd8
+		summarizeBy: none
+		sourceColumn: population
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Province Location' = 'gold dim_province'[province_name] & ", Vietnam"
+		lineageTag: 13e8c833-21b3-4daa-aba1-9f56c9546952
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column Lat = IF('gold dim_province'[province_name] = "Quang Ninh", 21.0064, BLANK())
+		lineageTag: 077d1e91-1186-4d59-afd1-bc1c598ab3a0
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Lon = IF('gold dim_province'[province_name] = "Quang Ninh", 107.2925, BLANK())
+		lineageTag: 89f9e20f-57bf-4d32-abc3-a0f956cc8214
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'gold dim_province' = m
+		mode: import
+		source =
+				let
+				  Source = Sql.Database("synw-megasale-dev-ondemand.sql.azuresynapse.net", "megasale_warehouse"),
+				  #"Navigation 1" = Source{[Schema = "gold", Item = "dim_province"]}[Data]
+				in
+				  #"Navigation 1"
+
+	annotation PBI_ResultType = Table
+

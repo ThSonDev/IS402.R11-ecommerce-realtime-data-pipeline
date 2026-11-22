@@ -1,0 +1,67 @@
+table 'gold dim_product'
+	lineageTag: 1c5a0ea9-6e00-44b2-939f-4771f89b61f6
+
+	column product_id
+		dataType: int64
+		formatString: 0
+		lineageTag: eca30082-d980-4952-af96-726e324aee63
+		summarizeBy: none
+		sourceColumn: product_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column category_code
+		dataType: string
+		lineageTag: eed22ee5-bc0f-4dc7-a93e-cab479458b74
+		summarizeBy: none
+		sourceColumn: category_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column category_level_1
+		dataType: string
+		lineageTag: 579057ac-8f2d-4eef-b553-e7a8a1cde967
+		summarizeBy: none
+		sourceColumn: category_level_1
+
+		annotation SummarizationSetBy = Automatic
+
+	column category_level_2
+		dataType: string
+		lineageTag: 1c048832-3839-4abc-96bd-5a888959d856
+		summarizeBy: none
+		sourceColumn: category_level_2
+
+		annotation SummarizationSetBy = Automatic
+
+	column category_level_3
+		dataType: string
+		lineageTag: e3142ff4-da38-4d78-87e4-22dc655483e0
+		summarizeBy: none
+		sourceColumn: category_level_3
+
+		annotation SummarizationSetBy = Automatic
+
+	column brand
+		dataType: string
+		lineageTag: 58c2c6f8-aae3-4f85-9a7d-a87e33bfe2a7
+		summarizeBy: none
+		sourceColumn: brand
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'gold dim_product' = m
+		mode: import
+		source =
+				let
+				  Source = Sql.Database("synw-megasale-dev-ondemand.sql.azuresynapse.net", "megasale_warehouse"),
+				  #"Navigation 1" = Source{[Schema = "gold", Item = "dim_product"]}[Data],
+				  #"Replaced value" = Table.ReplaceValue(#"Navigation 1", null, "Chưa phân loại", Replacer.ReplaceValue, {"category_level_1"}),
+				  #"Replaced value 1" = Table.ReplaceValue(#"Replaced value", null, "Chưa phân loại", Replacer.ReplaceValue, {"category_level_2"}),
+				  #"Replaced value 2" = Table.ReplaceValue(#"Replaced value 1", null, "Chưa phân loại", Replacer.ReplaceValue, {"category_level_3"}),
+				  #"Replaced value 3" = Table.ReplaceValue(#"Replaced value 2", null, "Chưa phân loại", Replacer.ReplaceValue, {"brand"})
+				in
+				  #"Replaced value 3"
+
+	annotation PBI_ResultType = Table
+

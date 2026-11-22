@@ -1,0 +1,28 @@
+table 'gold dim_payment'
+	lineageTag: abaffbec-c109-4700-9c86-c14f59dc9255
+
+	column payment_key
+		dataType: string
+		lineageTag: 82e1af92-9ac0-4adb-9a55-de3df2c0489b
+		summarizeBy: none
+		sourceColumn: payment_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column payment_method
+		dataType: string
+		lineageTag: 3500cb8b-b72a-4d5c-a334-e9f840370e0c
+		summarizeBy: none
+		sourceColumn: payment_method
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'gold dim_payment' = m
+		mode: import
+		source =
+				let
+				  Source = Sql.Database("synw-megasale-dev-ondemand.sql.azuresynapse.net", "megasale_warehouse"),
+				  #"Navigation 1" = Source{[Schema = "gold", Item = "dim_payment"]}[Data]
+				in
+				  #"Navigation 1"
+
