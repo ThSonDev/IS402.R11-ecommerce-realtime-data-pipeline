@@ -159,6 +159,63 @@ Dữ liệu đi qua ba lớp: bronze là file ASA ghi nguyên trạng, silver l�
 
 Thử CETAS trên 1 partition giờ (#92): giảm 72% số file, 64% dung lượng; chưa đưa vào luồng.
 
+## Star schema (gold)
+
+```mermaid
+erDiagram
+    fact_events }|--|| dim_date : date_key
+    fact_events }|--o| dim_product : "product_key = product_id"
+    fact_events }|--o| dim_channel : channel_key
+    fact_events }o--o| dim_province : province_key
+    fact_events }|--o| dim_payment : payment_key
+    fact_events {
+        varchar event_id PK
+        int date_key FK
+        bigint product_key FK
+        varchar channel_key FK
+        varchar province_key FK
+        varchar payment_key FK
+        varchar event_type
+        bigint user_id
+        varchar order_id
+        datetime2 event_time
+        bigint price_vnd
+        bit is_fraud
+        bit is_late
+        varchar scenario
+    }
+    dim_date {
+        int date_key PK "yyyyMMddHH"
+        date calendar_date
+        int hour_utc
+        nvarchar day_name
+    }
+    dim_product {
+        bigint product_id PK
+        varchar category_code
+        varchar category_level_1
+        varchar category_level_2
+        varchar category_level_3
+        varchar brand
+    }
+    dim_channel {
+        varchar channel_key PK
+        varchar channel
+    }
+    dim_province {
+        varchar province_key PK "province_code"
+        varchar province_name
+        varchar region
+        bigint population
+    }
+    dim_payment {
+        varchar payment_key PK
+        varchar payment_method
+    }
+```
+
+Mỗi dòng của `fact_events` là một event đã dedup theo `event_id` (xem, thêm giỏ hoặc mua); GMV và đơn tính từ các dòng `purchase`. `dim_date` có grain theo giờ (`date_key` = `yyyyMMddHH`), không theo ngày. `payment_key` chỉ có ở dòng purchase (NULL với view/cart). Chỉ vẽ cột khóa và vài cột chính. Không có `fact_alerts`: Power BI đọc thẳng `dbo.alerts` trên SQL Database. Tất cả là view trên Synapse serverless (schema `gold`), không phải bảng vật lý.
+
 ## IaC và CI/CD
 
 ```mermaid
