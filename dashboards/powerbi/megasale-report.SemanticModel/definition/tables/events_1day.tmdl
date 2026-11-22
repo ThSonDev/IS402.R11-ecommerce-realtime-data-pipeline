@@ -1,0 +1,224 @@
+table events_1day
+	lineageTag: c41cbe15-b16f-443b-a77f-2e01107fdde7
+
+	measure GMV = CALCULATE(SUM(events_1day[price_vnd]), events_1day[event_type] = "purchase")
+		formatString: 0
+		lineageTag: 00f7a14d-0f3e-4b18-9b30-27702dab34ed
+
+	measure Orders = CALCULATE(DISTINCTCOUNT(events_1day[order_id]), events_1day[event_type] = "purchase")
+		formatString: 0
+		lineageTag: 1fd1a0f0-3bff-4c88-b24d-e5c1768ae9e8
+
+	column schema_version
+		dataType: int64
+		formatString: 0
+		lineageTag: 2f62c3c7-ed8c-41b3-a902-6ecb2c9ce50d
+		summarizeBy: sum
+		sourceColumn: schema_version
+
+		annotation SummarizationSetBy = Automatic
+
+	column event_id
+		dataType: string
+		lineageTag: 76200c60-5c91-487e-9fc3-478f9c637f26
+		summarizeBy: none
+		sourceColumn: event_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column event_type
+		dataType: string
+		lineageTag: 2994e081-79b8-440e-b88d-f4c95e8b5018
+		summarizeBy: none
+		sourceColumn: event_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column event_time
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: c466ccfc-ce47-42da-b159-05fb63fb52da
+		summarizeBy: none
+		sourceColumn: event_time
+
+		variation Variation
+			isDefault
+			relationship: 758c939a-dd6e-4c1b-a64e-ce0321eb62f0
+			defaultHierarchy: LocalDateTable_47091b6a-237d-46f0-a7a1-be8a53e9919e.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column original_time
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 26a4000a-0ed3-4fdc-9cea-a1b94fae63aa
+		summarizeBy: none
+		sourceColumn: original_time
+
+		variation Variation
+			isDefault
+			relationship: 61afb431-8867-4253-b99f-cba8022c42ae
+			defaultHierarchy: LocalDateTable_3981b20b-b401-4e44-a742-8acdb549f317.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column sent_time
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: ecd6d2e0-c799-488a-8c1f-92a990563749
+		summarizeBy: none
+		sourceColumn: sent_time
+
+		variation Variation
+			isDefault
+			relationship: 61c5d026-8080-44cd-bead-d67f1ce7a27a
+			defaultHierarchy: LocalDateTable_c475850f-8b1d-474f-89f3-0961f7003f27.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column user_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 7eddeb95-5ceb-4621-9851-273fc0e2df42
+		summarizeBy: sum
+		sourceColumn: user_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column session_id
+		dataType: string
+		lineageTag: fa7f9eca-88a1-4d6e-965c-bf26ac947620
+		summarizeBy: none
+		sourceColumn: session_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_id
+		dataType: string
+		lineageTag: 466cfcf1-e7c9-47f0-858c-734f772bc1fa
+		summarizeBy: none
+		sourceColumn: order_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column device_id
+		dataType: string
+		lineageTag: 6348fcca-b113-43be-981a-299e101e4d99
+		summarizeBy: none
+		sourceColumn: device_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_new_account
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: a12e8d0e-9919-487e-af6d-7737872b61dc
+		summarizeBy: none
+		sourceColumn: is_new_account
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 8ed5fa84-c8aa-483a-bf5c-075aaa5b07ae
+		summarizeBy: sum
+		sourceColumn: product_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column category_code
+		dataType: string
+		lineageTag: 67d6cf38-7e7b-4d83-9663-d21e4097c47c
+		summarizeBy: none
+		sourceColumn: category_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column brand
+		dataType: string
+		lineageTag: bf3e0830-310a-4cd7-9cd5-893b643c4727
+		summarizeBy: none
+		sourceColumn: brand
+
+		annotation SummarizationSetBy = Automatic
+
+	column price_vnd
+		dataType: int64
+		formatString: 0
+		lineageTag: f97bb858-8147-45ea-86e2-1017a05768c1
+		summarizeBy: sum
+		sourceColumn: price_vnd
+
+		annotation SummarizationSetBy = Automatic
+
+	column channel
+		dataType: string
+		lineageTag: 673e9cd0-aaab-476f-82d5-230a0d842ecb
+		summarizeBy: none
+		sourceColumn: channel
+
+		annotation SummarizationSetBy = Automatic
+
+	column province_code
+		dataType: string
+		lineageTag: 321b04af-6a45-46e9-85ce-db92a76a8929
+		summarizeBy: none
+		sourceColumn: province_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column payment_method
+		dataType: string
+		lineageTag: a8aeef1a-689b-403a-ae50-b5e22cee0dcd
+		summarizeBy: none
+		sourceColumn: payment_method
+
+		annotation SummarizationSetBy = Automatic
+
+	column voucher_code
+		dataType: string
+		lineageTag: 870dc2a8-5b0a-456b-84d2-eea83770ebe2
+		summarizeBy: none
+		sourceColumn: voucher_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_fraud
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: e02e62ce-3bd2-45ff-b007-08f913aa7b11
+		summarizeBy: none
+		sourceColumn: is_fraud
+
+		annotation SummarizationSetBy = Automatic
+
+	column scenario
+		dataType: string
+		lineageTag: 2ed3c77a-c7e5-4d42-a6cd-133129b7fc3d
+		summarizeBy: none
+		sourceColumn: scenario
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_late
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 014b114e-1c41-404f-a4b5-4e878dc1e601
+		summarizeBy: none
+		sourceColumn: is_late
+
+		annotation SummarizationSetBy = Automatic
+
+	partition events_1day = m
+		mode: import
+		source =
+				let
+				  Source = Csv.Document(File.Contents("D:\code\Cloud\IS402.R11-ecommerce-realtime-data-pipeline\data\events_1day.csv"), [Delimiter = ",", Columns = 22, QuoteStyle = QuoteStyle.None]),
+				  #"Promoted headers" = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				  #"Changed column type" = Table.TransformColumnTypes(#"Promoted headers", {{"schema_version", Int64.Type}, {"event_id", type text}, {"event_type", type text}, {"event_time", type datetime}, {"original_time", type datetime}, {"sent_time", type datetime}, {"user_id", Int64.Type}, {"session_id", type text}, {"order_id", type text}, {"device_id", type text}, {"is_new_account", type logical}, {"product_id", Int64.Type}, {"category_code", type text}, {"brand", type text}, {"price_vnd", Int64.Type}, {"channel", type text}, {"province_code", type text}, {"payment_method", type text}, {"voucher_code", type text}, {"is_fraud", type logical}, {"scenario", type text}, {"is_late", type logical}})
+				in
+				  #"Changed column type"
+
+	annotation PBI_ResultType = Table
+
