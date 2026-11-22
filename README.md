@@ -25,7 +25,9 @@
   * Azure Synapse Analytics
 * **Công nghệ bổ sung:** Azure Functions, Azure SQL Database, Grafana, Kafka (Docker, môi trường dev), Terraform, GitHub Actions.
 
-![Kiến trúc tham khảo của Azure Stream Analytics](figures/example-architecture.jpg)
+![Kiến trúc hệ thống giám sát Mega Sale real-time](docs/architecture.drawio.svg)
+
+Giải thích từng bước và các sơ đồ chi tiết: [docs/architecture.md](docs/architecture.md).
 
 ## Dữ liệu
 * REES46 – *eCommerce behavior data from multi category store*: [Kaggle](https://www.kaggle.com/datasets/mkechinov/ecommerce-behavior-data-from-multi-category-store), [REES46](https://rees46.com). Cách tải xem [data/README.md](data/README.md).
