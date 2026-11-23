@@ -1,6 +1,6 @@
 # Phần báo cáo của Sơn
 
-Các mục theo PLAN.md mục 6 (issue #67): dịch vụ theo mô hình IaaS / PaaS / FaaS / SaaS (phần 1), chi phí và quota, phân quyền (IAM), quản lý dự án (phần 5). Số liệu lấy ngày 21/11/2026; lệnh tạo ra từng số nằm ở Phụ lục.
+Các mục theo PLAN.md mục 6 (issue #67): dịch vụ theo mô hình IaaS / PaaS / FaaS / SaaS (phần 1), chi phí và quota, phân quyền (IAM), quản lý dự án (phần 5). Chi phí, SQL free và GitHub lấy rạng sáng 24/11/2026 (giờ Việt Nam); IAM lấy ngày 21/11 và đối chiếu lại bằng ảnh chụp 24/11. Lệnh tạo ra từng số nằm ở Phụ lục.
 
 ## 1. Dịch vụ theo mô hình IaaS / PaaS / FaaS / SaaS
 
@@ -32,52 +32,54 @@ Các chỗ xếp nhóm còn tranh cãi:
 
 ## 2. Chi phí thật
 
-Nguồn: Cost Management, phạm vi resource group `rg-megasale-dev`, ActualCost từ 01/11 đến 21/11/2026, đơn vị USD. Số này **trễ 8–24 giờ**, nên buổi test sáng 21/11 (alerts #85, `destroy-eventhubs` xong sáng cùng ngày) chưa có trong đó.
+Nguồn: Cost Management, phạm vi resource group `rg-megasale-dev`, ActualCost tháng 11/2026 lấy lúc khoảng 00:40 ngày 24/11 (giờ Việt Nam), đơn vị USD. Số này **trễ 8–24 giờ** nên phần chi phí của ngày 23/11 có thể chưa đủ.
 
-**Tổng: 1.21 USD (1.205882), bằng 4.0% budget `budget-megasale` 30 USD/tháng** (còn 28.79 USD).
+**Tổng: 2.14 USD (2.137970), bằng 7.1% budget `budget-megasale` 30 USD/tháng.** Trang Budget cùng thời điểm ghi đã tiêu 2.09 USD và dự báo cả tháng 2.57 USD (Hình chi phí và budget bên dưới; hai số lệch nhau vì Budget cập nhật theo chu kỳ riêng).
 
 Theo dịch vụ:
 
 | Dịch vụ | USD | Tỷ lệ |
 |---|---:|---:|
-| Event Hubs | 0.956 | 79.3% |
-| Stream Analytics | 0.217 | 18.0% |
-| Storage | 0.017 | 1.4% |
-| Synapse | 0.016 | 1.3% |
+| Event Hubs | 1.071 | 50.1% |
+| Stream Analytics | 0.553 | 25.8% |
+| Synapse | 0.305 | 14.3% |
+| Storage | 0.210 | 9.8% |
 | SQL Database, Functions, App Service, Bandwidth, Service Bus | 0.000 | 0% |
 
 Theo meter (các dòng đáng kể):
 
 | Dịch vụ | Meter | USD |
 |---|---|---:|
-| Event Hubs | Standard Throughput Unit | 0.900 |
-| Event Hubs | Standard Ingress Events | 0.056 |
-| Stream Analytics | Standard V2 Streaming Unit/Job | 0.217 |
-| Synapse | Standard Data Processed | 0.016 |
-| Storage | Hot Read Operations | 0.010 |
+| Event Hubs | Standard Throughput Unit | 0.990 |
+| Event Hubs | Standard Ingress Events | 0.081 |
+| Stream Analytics | Standard V2 Streaming Unit/Job | 0.553 |
+| Synapse | Standard Data Processed | 0.305 |
+| Storage | Hot Read Operations | 0.181 |
+| Storage | Hot Iterative Read Operations | 0.016 |
+| Storage | Hot LRS Write Operations | 0.011 |
 | SQL Database | 1 vCore - Free; General Purpose Data Stored - Free | 0.000 |
 | Functions | Standard Execution Time | 0.000 |
 
 Đối chiếu với bảng giá japaneast (Azure Retail Prices API, 20/10/2026):
 
-- Event Hubs: 0.900 USD ÷ 0.03 USD/TU/giờ = **30 TU-giờ** (Event Hubs tồn tại 30 giờ cộng dồn); ingress 0.056 USD tương ứng 0.028 USD / 1 triệu event, khoảng 2 triệu event.
-- Stream Analytics: 0.217 USD ÷ ~0.155 USD/giờ ≈ **1.4 giờ chạy** (suy ra từ giá, không đo trực tiếp).
-- Synapse serverless 0.016 USD ở giá 6 USD/TB tương ứng khoảng 2.6 GB quét (suy ra).
+- Event Hubs: 0.990 USD ÷ 0.03 USD/TU/giờ = **33 TU-giờ** (Event Hubs tồn tại 33 giờ cộng dồn); ingress 0.081 USD ở 0.028 USD / 1 triệu event tương ứng khoảng 2.9 triệu event.
+- Stream Analytics: 0.553 USD ÷ ~0.155 USD/giờ ≈ **3.6 giờ chạy** (suy ra từ giá, không đo trực tiếp).
+- Synapse serverless: 0.305 USD ở giá 6 USD/TB tương ứng khoảng 51 GB quét (suy ra). Tăng mạnh so với mốc 21/11 (0.016 USD) cùng lúc với Storage Hot Read Operations (0.010 → 0.181 USD), khả năng do các lần Power BI refresh và truy vấn trên view gold đọc nhiều file Parquet nhỏ, chưa kiểm chứng từng truy vấn.
 
 Theo ngày (USD, làm tròn 3 chữ số; ngày không ghi là dưới 0.001):
 
-| Ngày | 03/11 | 14/11 | 15/11 | 16/11 | 17/11 |
-|---|---:|---:|---:|---:|---:|
-| Chi phí | 0.030 | 0.079 | 0.495 | 0.426 | 0.176 |
+| Ngày | 03/11 | 14/11 | 15/11 | 16/11 | 17/11 | 21/11 | 22/11 | 23/11 |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Chi phí | 0.030 | 0.079 | 0.495 | 0.426 | 0.176 | 0.052 | 0.583 | 0.297 |
 
-Bốn ngày 14–17/11 chiếm 1.175 USD, tức 97.4% tổng. Đây là các ngày chạy test e2e và sự cố bên dưới.
+Bảy ngày trên chiếm 2.107 USD, tức 98.5% tổng. Đây là các ngày chạy test e2e (14–17/11), test cảnh báo (21/11), buổi chạy đủ kịch bản (22/11, `docs/e2e-run.md`, ước tính trước là ~0.33 USD) và thử dashboard real-time (23/11).
 
-**SQL free offer.** Mỗi database được 100,000 vCore-giây và 32 GB dữ liệu mỗi tháng; khi hết hạn mức ở chế độ auto-pause, database tạm ngưng đến đầu tháng sau và không bị tính tiền ([Microsoft Learn, free offer](https://learn.microsoft.com/azure/azure-sql/database/free-offer)). Metric `free_amount_remaining` còn **91,793 vCore-giây** ở mốc 06:39 UTC ngày 21/11 (đã dùng khoảng 8.2% hạn mức tháng; chưa tính buổi test sau đó và các lần truy vấn kiểm tra).
+**SQL free offer.** Mỗi database được 100,000 vCore-giây và 32 GB dữ liệu mỗi tháng; khi hết hạn mức ở chế độ auto-pause, database tạm ngưng đến đầu tháng sau và không bị tính tiền ([Microsoft Learn, free offer](https://learn.microsoft.com/azure/azure-sql/database/free-offer)). Trang Overview của database ghi còn **82,953 vCore-giây** lúc khoảng 00:45 ngày 24/11 (giờ Việt Nam), tức đã dùng khoảng 17.0% hạn mức tháng (mốc 21/11: còn 91,793). Pricing tier "Free - General Purpose - Serverless", Overage billing tắt.
 
 **Bài học chi phí.**
 
-- 15–16/11: chạy `apply` qua CI rồi quên tắt, Event Hubs sống 26.5 giờ (khoảng 0.80 USD, hai phần ba hóa đơn tháng). Với giá hiện tại, Stream Analytics để chạy cả tuần sẽ tốn khoảng 26 USD, nên đây là rủi ro lớn hơn.
-- Quy trình buổi test đã đặt ra: `apply` → `fill_env.py` → kiểm grant SQL → start ASA → test → **stop ASA trước** → `destroy-eventhubs`; sau đó kiểm 3 điều: `az eventhubs namespace list -g rg-megasale-dev` rỗng, ASA `Stopped`, service Grafana `Stopped`. Buổi test 21/11 theo đúng quy trình này và cả 3 kiểm tra đều đạt.
+- 15–16/11: chạy `apply` qua CI rồi quên tắt, Event Hubs sống 26.5 giờ (khoảng 0.80 USD, gần 40% hóa đơn tháng tính đến 24/11). Với giá hiện tại, Stream Analytics để chạy cả tuần sẽ tốn khoảng 26 USD, nên đây là rủi ro lớn hơn.
+- Quy trình buổi test đã đặt ra: `apply` → `fill_env.py` → kiểm grant SQL → start ASA → test → **stop ASA trước** → `destroy-eventhubs`; sau đó kiểm 3 điều: `az eventhubs namespace list -g rg-megasale-dev` rỗng, ASA `Stopped`, service Grafana `Stopped`. Các buổi test 21/11 và 22/11 theo đúng quy trình này và cả 3 kiểm tra đều đạt.
 - Giữ lại các resource không tốn tiền khi rảnh (Functions, SQL free, Synapse serverless, storage); chỉ Event Hubs và ASA bị bật / tắt.
 
 ## 3. Quota và giới hạn đã chạm hoặc phải tính tới
@@ -129,7 +131,7 @@ User trong Azure SQL Database `sqldb-megasale-dev` (Entra-only, `sys.database_pr
 | `asa-megasale-dev` (managed identity của job ASA) | Không có role cố định; `SELECT, INSERT` trên `kpi_1min`, `pipeline_latency`, `alerts` (`scripts/sql/grant_asa_output_permissions.sql`) |
 | Sơn | Admin Entra của SQL server |
 
-Quyền khác: Power BI workspace `Megasale-powerBI` có Sơn và Tuấn là Admin, identity của ASA là Contributor (theo `infra/README.md`, chưa kiểm lại ở lần lấy số này). Event Hubs có hai policy tách biệt: `producer-send` chỉ gửi, `asa-listen` chỉ đọc.
+Quyền khác: Power BI workspace `Megasale-powerBI` (Power BI REST API, 23/11) có Sơn và Tuấn là Admin, Minh và Thắng là Viewer (để RLS áp dụng khi xem qua App), một service principal là Contributor (theo `infra/README.md` là identity của ASA ghi vào streaming dataset). Event Hubs có hai policy tách biệt: `producer-send` chỉ gửi, `asa-listen` chỉ đọc.
 
 Nguyên tắc áp dụng:
 
@@ -141,28 +143,28 @@ Nguyên tắc áp dụng:
 
 ## 5. Quản lý dự án
 
-Số liệu GitHub lấy ngày 21/11/2026.
+Số liệu GitHub lấy rạng sáng 24/11/2026.
 
 | Milestone | Hạn | Issue đã đóng | Issue còn mở |
 |---|---|---:|---:|
-| Tuần 1 | 02/11 | 20 | 1 |
-| Tuần 2 | 09/11 | 17 | 2 |
-| Tuần 3 | 16/11 | 9 | 4 |
-| Tuần 4 | 23/11 | 2 | 15 |
-| **Tổng** | | **48** | **22** |
+| Tuần 1 | 02/11 | 21 | 0 |
+| Tuần 2 | 09/11 | 19 | 0 |
+| Tuần 3 | 16/11 | 13 | 0 |
+| Tuần 4 | 23/11 | 10 | 7 |
+| **Tổng** | | **63** | **7** |
 
-Tổng 70 issue. Issue trễ giữ nguyên milestone cũ làm bằng chứng tiến độ, không dời.
+Tổng 70 issue. Issue trễ giữ nguyên milestone cũ làm bằng chứng tiến độ, không dời. 7 issue còn mở đều ở cột In Progress: báo cáo, benchmark, buổi chạy demo và slide.
 
 Issue theo người phụ trách (một issue có thể có nhiều người):
 
 | Người | Đã đóng | Còn mở |
 |---|---:|---:|
-| Sơn | 21 | 8 |
-| Minh | 14 | 4 |
-| Thắng | 9 | 6 |
-| Tuấn | 4 | 8 |
+| Sơn | 24 | 5 |
+| Minh | 15 | 3 |
+| Thắng | 14 | 1 |
+| Tuấn | 11 | 1 |
 
-Pull request: 29, trong đó 28 đã merge và 1 đóng không merge. PR đã merge theo tác giả: Sơn 14, Thắng 8, Minh 5, Tuấn 1. Review trên PR: 14 lượt approve và 5 lượt yêu cầu sửa (đều của Sơn, người duyệt dự phòng của mọi thư mục), 1 lượt comment của Thắng.
+Pull request: 41, trong đó 40 đã merge và 1 đóng không merge. PR đã merge theo tác giả: Sơn 17, Thắng 12, Minh 6, Tuấn 5. Review trên PR: 22 lượt approve (21 của Sơn, 1 của Minh) và 6 lượt yêu cầu sửa (đều của Sơn, người duyệt dự phòng của mọi thư mục), 1 lượt comment của Thắng.
 
 Quy trình:
 
@@ -194,7 +196,7 @@ Quy trình:
 Đặt `MSYS_NO_PATHCONV=1` trong Git Bash khi đường dẫn bắt đầu bằng `/subscriptions/...`. Cost Management hay trả 429 thì thử lại.
 
 ```powershell
-# Chi phí: body {"type":"ActualCost","timeframe":"Custom","timePeriod":{"from":"2026-11-01T00:00:00Z","to":"2026-11-21T23:59:59Z"},"dataset":{"granularity":"None","aggregation":{"totalCost":{"name":"Cost","function":"Sum"}},"grouping":[{"type":"Dimension","name":"ServiceName"}]}}
+# Chi phí: body {"type":"ActualCost","timeframe":"Custom","timePeriod":{"from":"2026-11-01T00:00:00Z","to":"2026-11-24T23:59:59Z"},"dataset":{"granularity":"None","aggregation":{"totalCost":{"name":"Cost","function":"Sum"}},"grouping":[{"type":"Dimension","name":"ServiceName"}]}}
 # Theo meter: thêm {"type":"Dimension","name":"Meter"}; theo ngày: granularity "Daily", grouping []
 az rest --method post --url "https://management.azure.com/subscriptions/<sub>/resourceGroups/rg-megasale-dev/providers/Microsoft.CostManagement/query?api-version=2023-11-01" --body "@cost-body.json"
 
