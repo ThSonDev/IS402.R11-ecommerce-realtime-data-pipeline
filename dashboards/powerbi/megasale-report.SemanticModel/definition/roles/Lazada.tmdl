@@ -1,0 +1,7 @@
+role Lazada
+	modelPermission: read
+
+	tablePermission 'gold dim_channel' = [channel] = "lazada"
+
+	annotation PBI_Id = 5a884464db584abdba0cf2b18eb0457d
+

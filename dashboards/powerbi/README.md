@@ -41,6 +41,8 @@ Cả hai đều đăng nhập bằng Microsoft account của trường (Entra ID
 
 ## Lưu ý
 
+- Phân quyền: 6 vai trò RLS (Shopee, Tiki, Lazada theo sàn; Bac, Trung, Nam theo miền) nằm trong `megasale-report.SemanticModel/definition/roles/`. Thử bằng Modeling, View as. Chỉ áp cho người xem có quyền Viewer; chi tiết trong `METRICS.md` mục 5.
+- Bố cục mobile của 4 trang nằm trong các file `mobile.json` cạnh từng `visual.json` (View, Mobile layout).
 - `.pbi/cache.abf` và `.pbi/localSettings.json` bị `.gitignore` chặn (cache hơn 100 MB, không đưa lên git).
 - Bản đồ tỉnh dùng visual bản đồ cũ của Power BI, Microsoft đã báo sẽ ngừng. Tên tỉnh Quảng Ninh được định vị bằng tọa độ vì tên bị nhận nhầm sang Trung Quốc (xem cột `Lat`, `Lon` của `gold dim_province`).
 - Trang 4: `alerts` không nối với `fact_events` (không có `order_id`), nên bộ lọc thời gian và sàn không tác động lên số cảnh báo.

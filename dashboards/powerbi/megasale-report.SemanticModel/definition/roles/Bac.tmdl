@@ -1,0 +1,9 @@
+role Bac
+	modelPermission: read
+
+	tablePermission 'gold dim_province' = [region] = "bac"
+
+	tablePermission 'gold dim_channel'
+
+	annotation PBI_Id = 6a6879854a4e4d0a97e3b8ac80f1a363
+

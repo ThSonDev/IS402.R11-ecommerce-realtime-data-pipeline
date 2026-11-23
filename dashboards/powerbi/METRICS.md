@@ -73,6 +73,15 @@ Tên trang và bộ lọc theo `plan/Tuan.md`. Các biểu đồ cụ thể là 
 
 ## 4. Dashboard real-time (Power BI Service)
 - Nguồn: dataset `megasale_kpi_1min`, bảng `kpi_1min`, workspace `Megasale-powerBI`. Dataset đã có dữ liệu thật.
-- Tile: số đơn mỗi phút, GMV, so sánh theo sàn.
-- Có bố cục mobile.
+- Mỗi dòng `kpi_1min` là một sàn x một tỉnh x một phút (khoảng 100 dòng mỗi phút). Tile streaming chỉ hiện dòng mới nhất nên không cộng được. Vì vậy các tile được dựng từ báo cáo `megasale-realtime` (có phép Sum) rồi ghim lên dashboard "Megasale Realtime".
+- Tile: Tổng số đơn (`order_count`), Tổng GMV (`gmv_vnd`), Số đơn theo phút (theo `window_end`), GMV theo sàn (theo `channel`).
+- Có bố cục mobile cho dashboard.
+- Kết quả thử 23/11/2026: khi producer chạy, tile tăng không cần làm mới (Tổng số đơn 10.515K lên 10.633K, GMV 94,80 lên 95,80 tỷ). ASA gom theo cửa sổ 1 phút nên số cập nhật theo phút. Trục thời gian hiển thị giờ UTC (giờ Việt Nam = UTC + 7).
 - Lưu ý: tính năng real-time streaming của Power BI được Microsoft thông báo ngừng (mốc 31/10/2027). Vẫn dùng cho đồ án, sẽ ghi chú trong báo cáo.
+
+## 5. Phân quyền (RLS), chia sẻ và mobile
+- 6 vai trò RLS trên semantic model `megasale-report`: `Shopee`, `Tiki`, `Lazada` lọc `gold dim_channel[channel]` bằng `shopee`, `tiki`, `lazada`; `Bac`, `Trung`, `Nam` lọc `gold dim_province[region]` bằng `bac`, `trung`, `nam`.
+- Bảng `alerts` không có cột sàn hay miền nên RLS không lọc được, trang 4 luôn hiện toàn bộ cảnh báo.
+- RLS chỉ áp cho người có quyền Viewer. Admin, Member, Contributor luôn thấy hết, nên kiểm tra bằng View as role (Desktop) hoặc Test as role (Service).
+- Power BI App "Megasale Dashboard" gồm báo cáo `megasale-report` và dashboard "Megasale Realtime"; người xem chỉ có quyền xem. Sau mỗi lần publish lại báo cáo phải bấm Update app.
+- Bố cục mobile làm cho cả 4 trang (View, Mobile layout): thẻ số xếp dọc, bảng cho vuốt ngang.
