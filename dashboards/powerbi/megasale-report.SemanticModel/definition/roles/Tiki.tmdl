@@ -1,0 +1,7 @@
+role Tiki
+	modelPermission: read
+
+	tablePermission 'gold dim_channel' = [channel] = "tiki"
+
+	annotation PBI_Id = 7c04801234b84ba991e30f5a5379ff1f
+

@@ -1,0 +1,7 @@
+role Nam
+	modelPermission: read
+
+	tablePermission 'gold dim_province' = [region] = "nam"
+
+	annotation PBI_Id = 276c98ffd8f345968f8637b7243122b2
+

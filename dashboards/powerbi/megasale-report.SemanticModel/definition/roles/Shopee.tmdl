@@ -1,0 +1,7 @@
+role Shopee
+	modelPermission: read
+
+	tablePermission 'gold dim_channel' = [channel] = "shopee"
+
+	annotation PBI_Id = 4a0b7840548d474dae56506151c87415
+

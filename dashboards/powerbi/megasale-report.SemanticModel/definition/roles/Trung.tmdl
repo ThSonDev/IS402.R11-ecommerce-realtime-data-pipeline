@@ -1,0 +1,7 @@
+role Trung
+	modelPermission: read
+
+	tablePermission 'gold dim_province' = [region] = "trung"
+
+	annotation PBI_Id = 8df258209a0645e497980c19369a83fe
+

@@ -22,5 +22,12 @@ ref table 'gold fact_events'
 ref table alerts
 ref table Loai
 
+ref role Shopee
+ref role Tiki
+ref role Lazada
+ref role Bac
+ref role Trung
+ref role Nam
+
 ref cultureInfo en-US
 
