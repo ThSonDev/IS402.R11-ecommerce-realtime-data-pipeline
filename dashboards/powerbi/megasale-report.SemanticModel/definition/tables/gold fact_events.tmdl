@@ -37,7 +37,7 @@ table 'gold fact_events'
 		formatString: 0
 		lineageTag: d470819e-85e4-428f-976d-1b611aef0f9f
 
-	measure 'Fraud Labeled Events' = CALCULATE(COUNTROWS('gold fact_events'), 'gold fact_events'[is_fraud] = TRUE(), 'gold fact_events'[scenario] = SELECTEDVALUE(Loai[Loai]))
+	measure 'Fraud Labeled Events' = CALCULATE(DISTINCTCOUNT('gold fact_events'[order_id]), 'gold fact_events'[event_type] = "purchase", 'gold fact_events'[is_fraud] = TRUE(), 'gold fact_events'[scenario] = SELECTEDVALUE(Loai[Loai]))
 		formatString: 0
 		lineageTag: 9dac1dac-821a-4af9-bde2-14f79a8e51bc
 

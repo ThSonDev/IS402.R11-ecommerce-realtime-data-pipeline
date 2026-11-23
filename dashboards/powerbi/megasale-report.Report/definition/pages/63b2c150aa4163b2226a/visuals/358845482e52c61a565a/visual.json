@@ -127,7 +127,7 @@
             "fontFamily": {
               "expr": {
                 "Literal": {
-                  "Value": "'''Times New Roman'''"
+                  "Value": "'''Segoe UI'', wf_segoe-ui_normal, helvetica, arial, sans-serif'"
                 }
               }
             },
@@ -143,5 +143,51 @@
       ]
     },
     "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "bd5b4d56e97aeeba1f75",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "gold dim_product"
+              }
+            },
+            "Property": "category_level_1"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "9c7cdad024c1fce80947",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "gold dim_product"
+              }
+            },
+            "Property": "category_level_2"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "f5cac833ce567d5b9b4d",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "gold fact_events"
+              }
+            },
+            "Property": "GMV"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
   }
 }

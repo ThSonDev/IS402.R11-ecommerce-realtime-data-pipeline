@@ -84,7 +84,7 @@
             "fontFamily": {
               "expr": {
                 "Literal": {
-                  "Value": "'''Times New Roman'''"
+                  "Value": "'''Segoe UI'', wf_segoe-ui_normal, helvetica, arial, sans-serif'"
                 }
               }
             },
@@ -100,5 +100,37 @@
       ]
     },
     "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "4515be7deaeefef6632b",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "gold dim_channel"
+              }
+            },
+            "Property": "channel"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "7f874d893c212f52e8f9",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "gold fact_events"
+              }
+            },
+            "Property": "GMV"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
   }
 }

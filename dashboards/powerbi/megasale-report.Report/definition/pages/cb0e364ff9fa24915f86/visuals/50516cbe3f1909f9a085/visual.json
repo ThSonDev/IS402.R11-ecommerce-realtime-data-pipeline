@@ -133,7 +133,14 @@
             "fontFamily": {
               "expr": {
                 "Literal": {
-                  "Value": "'''Times New Roman'''"
+                  "Value": "'''Segoe UI'', wf_segoe-ui_normal, helvetica, arial, sans-serif'"
+                }
+              }
+            },
+            "bold": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
                 }
               }
             }
@@ -142,5 +149,51 @@
       ]
     },
     "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "6437f9fe316f56476a2b",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "gold dim_channel"
+              }
+            },
+            "Property": "channel"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "ca17dcd02838881c6be0",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "gold dim_province"
+              }
+            },
+            "Property": "region"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "c837ee5deb668c7b0f9b",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "gold fact_events"
+              }
+            },
+            "Property": "GMV"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
   }
 }
