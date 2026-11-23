@@ -112,7 +112,14 @@
             "fontFamily": {
               "expr": {
                 "Literal": {
-                  "Value": "'''Times New Roman'''"
+                  "Value": "'''Segoe UI'', wf_segoe-ui_normal, helvetica, arial, sans-serif'"
+                }
+              }
+            },
+            "bold": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
                 }
               }
             }
@@ -121,5 +128,75 @@
       ]
     },
     "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "9035567c3a9645422cac",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "gold dim_province"
+              }
+            },
+            "Property": "Province Location"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "502cf76f1bde4141cc90",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "gold fact_events"
+              }
+            },
+            "Property": "GMV"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "aad9f83c7cc34b9d96a6",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "gold dim_province"
+                  }
+                },
+                "Property": "Lon"
+              }
+            },
+            "Function": 1
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "1e8a71932d0df96cf3ae",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "gold dim_province"
+                  }
+                },
+                "Property": "Lat"
+              }
+            },
+            "Function": 1
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
   }
 }

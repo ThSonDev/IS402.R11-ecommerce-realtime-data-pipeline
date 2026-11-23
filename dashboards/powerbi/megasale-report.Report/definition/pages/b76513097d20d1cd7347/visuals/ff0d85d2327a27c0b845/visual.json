@@ -100,7 +100,7 @@
             "fontFamily": {
               "expr": {
                 "Literal": {
-                  "Value": "'''Times New Roman'''"
+                  "Value": "'''Segoe UI'', wf_segoe-ui_normal, helvetica, arial, sans-serif'"
                 }
               }
             },
@@ -129,5 +129,51 @@
       ]
     },
     "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "f923a885a88bd5f9c473",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Loai"
+              }
+            },
+            "Property": "Loai"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "2bca30fc594c2bd2e031",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "gold fact_events"
+              }
+            },
+            "Property": "Fraud Labeled Events"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "b8ac1c03c0556863f1fd",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "gold fact_events"
+              }
+            },
+            "Property": "Rule Alerts"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
   }
 }
