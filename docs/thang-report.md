@@ -18,7 +18,7 @@ Event có thể đến trễ so với `event_time` hoặc không đúng thứ t�
 
 Cloud test trên baseline `c74ce16` ghi nhận 2,000 event trong bài late-arrival; producer đánh dấu 102 event đến trễ và chúng vẫn xuất hiện trong `raw_archive`. Baseline này dùng tolerance 5/0 giây trước PR #82, nên là kết quả lịch sử. Bài cloud sau #82 dùng cấu hình 60/60 giây và producer `--speed 4 --late-rate 0.05 --late-delay 50`: gửi 76,790 event, trong đó 3,803 event trễ, không lỗi. `raw_archive` có 76,790 dòng với 76,790 ID duy nhất và 3,803 dòng `is_late=true`. KPI SQL so với raw gom theo payload `event_time` khớp tuyệt đối ở 16/16 phút về view, cart, purchase và GMV; tổng GMV hai bên là 13,943,590,057 VND. ASA metrics `DroppedOrAdjustedEvents`, `LateInputEvents` và `ConversionErrors` đều bằng 0. Phép đối chiếu này xác minh KPI và lake cho batch đó, không tự xác minh sink Power BI.
 
-Luật sự cố dùng `AnomalyDetection_SpikeAndDip` trên số đơn phân biệt theo tumbling window một phút. Mỗi phút có traffic được giữ lại trong chuỗi, kể cả phút không có purchase nhưng còn view/cart; phút đó được biểu diễn bằng `order_count = 0`, nhờ vậy đoạn mất đơn không biến mất khỏi chuỗi đầu vào. Cấu hình hiện tại dùng confidence 80 và `historySize=10`; `LAG` chặn cảnh báo trong 10 phút đầu để mô hình có đủ lịch sử. `threshold=90` trong output chỉ là mốc tham khảo để hiển thị, điều kiện phát cảnh báo là `IsAnomaly=1`. Kiểm tra ASA Tools bằng chuỗi tổng hợp 10 phút ở mức 90 đơn/phút rồi 5 phút ở mức 0 không báo trong giai đoạn baseline và có báo ở các phút mất đơn. Đây là kiểm chứng local tổng hợp; xác nhận trên replay sự cố thật vẫn cần lượt E2E cloud. Các ngưỡng ban đầu của luật nhiều tài khoản và sai giá cũng cần được đánh giá precision/recall trước khi kết luận là ngưỡng cuối. Không dùng `is_fraud` hoặc `scenario` làm đầu vào phát hiện vì đây là nhãn đánh giá.
+Luật sự cố dùng `AnomalyDetection_SpikeAndDip` trên số đơn phân biệt theo tumbling window một phút. Mỗi phút có traffic được giữ lại trong chuỗi, kể cả phút không có purchase nhưng còn view/cart; phút đó được biểu diễn bằng `order_count = 0`, nhờ vậy đoạn mất đơn không biến mất khỏi chuỗi đầu vào. Cấu hình cloud đã kiểm tra dùng confidence 80 và `historySize=10`; `LAG` chặn cảnh báo trong 10 phút đầu để mô hình có đủ lịch sử. `threshold=90` trong output chỉ là mốc tham khảo để hiển thị, điều kiện phát cảnh báo là `IsAnomaly=1`. Trong replay cloud 22/11, cấu hình này bắt được sự cố thật khi số đơn về 0 nhưng bỏ sót sự cố giả lập giảm khoảng 40%; chi tiết và đề xuất cho #72 ở mục dưới. Không dùng `is_fraud` hoặc `scenario` làm đầu vào phát hiện vì đây là nhãn đánh giá.
 
 ## 3.2. Luồng ETL
 
@@ -32,6 +32,28 @@ Luồng truy vấn và lệnh kết nối được ghi trong `stream/README.md`,
 ### Đo độ trễ pipeline trên cloud
 
 Trong một đợt chạy sạch kéo dài 5 phút với 24,991 event, độ trễ trung bình theo event là khoảng 320 ms từ producer đến Event Hubs, 140 ms từ Event Hubs đến ASA và 476 ms từ lúc gửi đến khi ASA xử lý. KPI được xuất hiện sau khoảng 1–3 phút do tumbling window một phút kết hợp ngưỡng chờ 60/60 giây; đây là thời gian chờ output theo window, khác với độ trễ xử lý trung bình theo từng event.
+
+### Kết quả cloud và đề xuất ngưỡng (#72)
+
+Buổi chạy E2E ngày 22/11/2026 gồm lượt A2 sau khi sửa định nghĩa luật (113,928 event, 5,704 event trễ) và lượt B có sự cố thật (498,298 event). Producer không báo lỗi gửi. Bảng dưới là kết quả tính từ alert trong Azure SQL và ground truth của producer bằng `analysis/evaluate_rules.py`; phương pháp và ca sai được trình bày chi tiết trong [`docs/minh-report.md`](minh-report.md) và [`docs/e2e-run.md`](e2e-run.md).
+
+| Luật | A2: precision / recall | B: precision / recall | Nhận xét |
+|---|---|---|---|
+| Bot | 100% / 100% (3/3 user) | Không có kịch bản bot | Bot 20 đơn/phút được bắt, nhưng cửa sổ tumbling có thể chia đơn qua ranh giới phút. |
+| Nhiều tài khoản | 100% / 100% (2/2 thiết bị) | 100% / 100% (2/2 thiết bị) | Hopping 10 phút, bước 1 phút bắt đủ; kết quả không kiểm chứng báo nhầm trên thiết bị dùng chung thật vì producer giả định mỗi user có thiết bị riêng. |
+| Sai giá | 100% / 100% (3/3 sản phẩm) | 100% / 100% (3/3 sản phẩm) | Chỉ báo giá thấp hơn tham chiếu quá 50%; kết quả cả tháng ước tính vẫn có 231 đơn thật bị đánh dấu (0.025%, trung vị 4 đơn/ngày). |
+| Sự cố | 0 cảnh báo, recall 0% với mức giảm khoảng 40% | 100% / 100% (1 cảnh báo) khi đơn về 0 | Confidence 80 bắt được sự cố thật sau 1 phút 41 giây nhưng chỉ báo một lần trong khoảng sự cố ~18 phút. |
+
+Lượt A dùng query cũ và cần đọc thận trọng: luật 2 chỉ đạt recall 50% do cửa sổ tumbling 10 phút cắt 6 tài khoản thành hai nhóm 3; luật 3 đạt precision 60% do query cũ báo cả giá cao; luật 4 dùng `spikesanddips`, các cảnh báo sau sự cố bị tính đúng một phần do công cụ chấm cho phép trễ 2 phút, dù thực tế không phát hiện dip trong khoảng sự cố. Vì vậy không dùng A làm bằng chứng cho chất lượng của định nghĩa luật hiện tại.
+
+**Đề xuất để chốt #72 (chưa áp dụng vào query):**
+
+- **Bot:** ưu tiên thử `HOPPINGWINDOW(second, 60, 10)` với ngưỡng `> 10` để giảm khả năng bỏ lọt do ranh giới tumbling; đánh đổi là có thể có nhiều dòng cảnh báo trùng. Phương án ít thay đổi hơn là hạ ngưỡng xuống `> 5`: dữ liệu tháng có tối đa 3 đơn khác nhau/user/phút và không có user-phút nào từ 5 đơn trở lên, nhưng cần chạy kịch bản bot yếu 8–12 đơn/phút ở nhiều vị trí ranh giới trước khi chọn.
+- **Nhiều tài khoản:** giữ `> 3` tài khoản mới trên cùng thiết bị trong 10 phút và hopping bước 1 phút. Ghi rõ precision/recall 100% trên bộ kịch bản không chứng minh được precision với thiết bị gia đình/máy công cộng.
+- **Sai giá:** giữ điều kiện một chiều giá bán thấp hơn giá tham chiếu trên 50% (`deviation > 0.5`) cho bộ kịch bản hiện tại. Công bố riêng ước tính 231 đơn thật/tháng bị gắn cờ; dữ liệu hiện có chưa đo precision/recall của các ngưỡng thay thế.
+- **Sự cố:** giữ `dips`, `historySize=10`; đề xuất thử confidence 70 so với 80 trên cùng baseline, ca giảm 40% và ca về 0. Chưa có lượt chạy confidence 70 nên đây là mức thử đề xuất, không phải ngưỡng đã xác minh. Giữ cấu hình cloud hiện tại ở 80 cho tới khi có kết quả so sánh; không sửa query chỉ dựa trên suy đoán.
+
+Số độ trễ của cùng buổi chạy cũng có giới hạn: `pipeline_latency` chỉ đo Event Hubs → ASA bằng thời gian Azure, median các giá trị trung bình theo phút là 136 ms ở A2 và 128 ms ở B; A2 có đỉnh 6,775 ms ngay sau lúc start job, chưa xác minh nguyên nhân. Độ trễ end-to-end 250–260 ms trong `e2e-run.md` là phép cộng hai phép đo riêng, không phải đo trực tiếp. `InputEvents` của ASA lớn hơn số producer gửi và có 8,000 payload lỗi từ lần đo region; chưa giải thích được phần chênh còn lại. Không lấy các số này làm kết quả độ trễ end-to-end chính xác.
 
 ## 3.4. Tối ưu lưu trữ và tốc độ đọc
 
