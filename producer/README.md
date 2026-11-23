@@ -159,7 +159,7 @@ Lệnh này cần chạy sau khi ASA job đã khởi động và input Event Hub
 
 | Kịch bản | Bắt đầu (`--scenario-start 60`) | Chèn gì | Vì sao mạnh đến mức này |
 |---|---|---|---|
-| `bot` | giây 60 | 3 user giả (`user_id` từ 900,000,000), mỗi user 20 đơn trong 60 giây | User thật tối đa 7 đơn / phút; luật 1 thử ngưỡng từ 5 |
+| `bot` | giây 60 | 3 user giả (`user_id` từ 900,000,000), mỗi user 20 đơn trong 60 giây | User thật tối đa 3 đơn khác nhau (7 dòng purchase) / phút; luật 1 báo khi > 10 đơn |
 | `multi_account` | giây 180 | 2 thiết bị, mỗi thiết bị 6 tài khoản mới (`is_new_account = true`), mỗi tài khoản một đơn dùng voucher `NEWMEMBER`, trong 5 phút | Mỗi user thật có thiết bị riêng; luật 2 thử 3–5 tài khoản / 10 phút |
 | `price_glitch` | giây 300 | 3 sản phẩm có giá tham chiếu ≥ 5,000,000 VND, mỗi sản phẩm 5 đơn giá 10–30% giá tham chiếu, trong 2 phút | Giá thật dao động tới 1.67 lần (p99); luật 3 thử lệch trên 50% |
 | `payment_outage` | giây 420, dài 10 phút | Không chèn: bỏ mọi purchase thật trả bằng `cod` (40% đơn) trong khoảng đó | Số đơn mỗi phút giảm khoảng 40%; ground truth là khoảng thời gian trong file log |

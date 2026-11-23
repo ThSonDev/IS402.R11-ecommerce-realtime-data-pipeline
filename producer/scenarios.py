@@ -15,7 +15,7 @@ SCENARIOS = ("bot", "multi_account", "price_glitch", "payment_outage")
 SPACING = 120  # seconds between the starts of two consecutive scenarios
 
 # Simulation parameters. Baselines from the real data (analysis/eda.py):
-# a real user places at most 7 orders in one minute (99.7% of user-minutes have 1),
+# a real user has at most 7 purchase rows but only 3 distinct orders in one minute,
 # and a product's price varies up to 1.67x (p99 of max/min).
 BOT_USERS = 3
 BOT_ORDERS = 20             # orders per bot user ...
