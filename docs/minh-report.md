@@ -32,14 +32,17 @@ Dữ liệu được phát lại (replay) từ log thật, không có nguồn đ
 
 | Nơi chạy | Cấu hình | Thời gian (trung vị 3 lần, sau 1 lần warm-up) |
 |---|---|---|
-| Laptop (AMD Ryzen 9 7945HX, WSL2 7.6 GiB RAM, DuckDB 2.0.0) | 32 luồng | 0.56 giây |
-| Laptop | 4 luồng | 1.66 giây |
-| Laptop | 1 luồng | 7.11 giây |
-| Synapse serverless (`japaneast`) | Tự co giãn | **(chờ)**: cần upload file lên `lake/benchmark/rees46/` rồi chạy truy vấn |
+| Laptop 1 (AMD Ryzen 9 7945HX, WSL2 7.6 GiB RAM, DuckDB 2.0.0) | 32 luồng | 0.56 giây |
+| Laptop 1 | 4 luồng | 1.66 giây |
+| Laptop 1 | 1 luồng | 7.11 giây |
+| Laptop 2 (Intel Core i7-11800H, Windows 11, 31.7 GB RAM, DuckDB 2.0.0) | 16 luồng | 2.37 giây |
+| Synapse serverless (`japaneast`) | Tự co giãn, không chọn cấu hình | 86.6 giây (lần warm-up 102.3 giây) |
 
-Lần đầu trên laptop (file chưa nằm trong cache của hệ điều hành) mất 3.85 giây với 32 luồng. Đo ngày 19/11/2026.
+Lần đầu trên laptop 1 (file chưa nằm trong cache của hệ điều hành) mất 3.85 giây với 32 luồng. Đo laptop 1 ngày 19/11/2026; laptop 2 và Synapse đo rạng sáng 24/11/2026 (giờ Việt Nam) trên cùng một file (1,191,757,930 byte; laptop 1 dùng bản xử lý riêng 1,191,810,334 byte, cùng kết quả tổng hợp).
 
-Nhận xét sơ bộ: với khoảng 1 GB Parquet, một laptop mạnh xử lý cả tháng trong dưới 1 giây. Lợi thế của cloud ở bài toán này không nằm ở tốc độ tổng hợp một lần, mà ở chỗ chạy **liên tục**, nhận dữ liệu từ nhiều nguồn, lưu trữ lâu dài và chia sẻ kết quả cho nhiều người. Kết luận cuối cùng chờ số đo Synapse.
+Chi tiết phía Synapse: file upload lên `lake/benchmark/rees46/2019-Nov.parquet` (59 giây), chạy `scripts/sql/bench_monthly_aggregate.sql` bằng `sqlcmd` 4 lần liền nhau; thời gian lấy phía server từ `sys.dm_exec_requests_history` (`total_elapsed_time_ms`: 102,273 / 87,063 / 86,610 / 86,630 ms). Mỗi lần quét 330 MB (chỉ đọc 4 cột cần dùng của Parquet), di chuyển dữ liệu giữa các node 1,488 MB, tính tiền theo 1,818 MB xử lý, tức khoảng 0.011 USD mỗi lần ở giá 6 USD/TB (4 lần khoảng 0.04 USD). Kết quả trùng với laptop: 89 dòng, 67,501,979 event, doanh thu 275,194,890.50 USD.
+
+Nhận xét: với khoảng 1.2 GB Parquet, laptop nhanh hơn Synapse serverless khoảng 36 lần (2.37 so với 86.6 giây). Khả năng là do `COUNT(DISTINCT user_id)` buộc Synapse chia lại dữ liệu giữa các node (1,488 MB di chuyển, gấp 4.5 lần dữ liệu quét) và chi phí khởi động truy vấn phân tán; nguyên nhân chưa kiểm chứng bằng truy vấn không có `DISTINCT`. Ở kích thước này, máy chủ truyền thống (một máy mạnh) thắng về tốc độ một lần chạy. Lợi thế của cloud trong đồ án nằm ở chỗ khác: không phải mua và giữ máy (mỗi lần tổng hợp cả tháng khoảng 0.011 USD), chạy **liên tục** và nhận luồng dữ liệu từ nhiều nguồn, lưu trữ lâu dài trên data lake, và nhiều người (Power BI, 4 thành viên) cùng đọc mà không phụ thuộc máy ai đang bật. Khi dữ liệu vượt RAM và ổ đĩa của một máy (phát lại cả tháng đã khoảng 43 GB JSON), Synapse vẫn chạy cùng truy vấn mà không đổi gì.
 
 ## 3.1 Tốc độ đọc / ghi, throughput
 
