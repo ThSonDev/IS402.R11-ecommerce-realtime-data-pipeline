@@ -1,0 +1,101 @@
+table 'gold dim_date'
+	lineageTag: f03c5271-ae73-48be-bb4c-db52311e92c5
+
+	column date_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 4710c169-c45b-474b-953d-90e16051f569
+		summarizeBy: none
+		sourceColumn: date_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 9b99345e-e0dd-4a94-9293-9e832c26f363
+		summarizeBy: none
+		sourceColumn: calendar_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column calendar_year
+		dataType: int64
+		formatString: 0
+		lineageTag: 56fc1c4c-3a2e-42e1-8f1a-61330b35ae82
+		summarizeBy: sum
+		sourceColumn: calendar_year
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_quarter
+		dataType: int64
+		formatString: 0
+		lineageTag: bebd7dd3-702c-413b-8b5d-2721c036422a
+		summarizeBy: sum
+		sourceColumn: calendar_quarter
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_month
+		dataType: int64
+		formatString: 0
+		lineageTag: aa9479af-7a2d-4043-8441-f79431bc0524
+		summarizeBy: sum
+		sourceColumn: calendar_month
+
+		annotation SummarizationSetBy = Automatic
+
+	column day_of_month
+		dataType: int64
+		formatString: 0
+		lineageTag: 04d2146b-28a9-4adb-bd34-f27e9ca20c7e
+		summarizeBy: sum
+		sourceColumn: day_of_month
+
+		annotation SummarizationSetBy = Automatic
+
+	column day_name
+		dataType: string
+		lineageTag: ee5da0da-330d-4bd9-96a2-266dde0ef85a
+		summarizeBy: none
+		sourceColumn: day_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column day_of_week
+		dataType: int64
+		formatString: 0
+		lineageTag: 98e4b00c-53b4-4d9b-8833-2696cdf06ef4
+		summarizeBy: sum
+		sourceColumn: day_of_week
+
+		annotation SummarizationSetBy = Automatic
+
+	column hour_utc
+		dataType: int64
+		formatString: 0
+		lineageTag: c8ca5d9d-ef8b-4cf2-9ad0-7ac6bb374fb4
+		summarizeBy: sum
+		sourceColumn: hour_utc
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Date Hour' = 'gold dim_date'[calendar_date] + TIME('gold dim_date'[hour_utc], 0, 0)
+		formatString: General Date
+		lineageTag: ba3c8a87-9a31-4bcc-81aa-0cc7102dece2
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'gold dim_date' = m
+		mode: import
+		source =
+				let
+				  Source = Sql.Database("synw-megasale-dev-ondemand.sql.azuresynapse.net", "megasale_warehouse"),
+				  #"Navigation 1" = Source{[Schema = "gold", Item = "dim_date"]}[Data]
+				in
+				  #"Navigation 1"
+

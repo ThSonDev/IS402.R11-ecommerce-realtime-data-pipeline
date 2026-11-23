@@ -1,0 +1,117 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "name": "d556cf32cd3c19e6d2de",
+  "position": {
+    "x": 0,
+    "y": 0,
+    "z": 0,
+    "height": 160.48632218844983,
+    "width": 1920,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "gold fact_events"
+                    }
+                  },
+                  "Property": "GMV"
+                }
+              },
+              "queryRef": "gold fact_events.GMV",
+              "nativeQueryRef": "Tổng doanh thu (GMV, VND)",
+              "displayName": "Tổng doanh thu (GMV, VND)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "gold fact_events"
+                    }
+                  },
+                  "Property": "Orders"
+                }
+              },
+              "queryRef": "gold fact_events.Orders",
+              "nativeQueryRef": "Số đơn hàng",
+              "displayName": "Số đơn hàng"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "gold fact_events"
+                    }
+                  },
+                  "Property": "AOV"
+                }
+              },
+              "queryRef": "gold fact_events.AOV",
+              "nativeQueryRef": "Giá trị trung bình mỗi đơn (VND)",
+              "displayName": "Giá trị trung bình mỗi đơn (VND)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "gold fact_events"
+                    }
+                  },
+                  "Property": "Conversion Rate"
+                }
+              },
+              "queryRef": "gold fact_events.Conversion Rate",
+              "nativeQueryRef": "Tỷ lệ chuyển đổi (mua / xem)",
+              "displayName": "Tỷ lệ chuyển đổi (mua / xem)"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "gold fact_events"
+                  }
+                },
+                "Property": "GMV"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

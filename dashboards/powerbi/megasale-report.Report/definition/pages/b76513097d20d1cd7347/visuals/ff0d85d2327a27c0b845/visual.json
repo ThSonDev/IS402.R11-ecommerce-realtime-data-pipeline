@@ -1,0 +1,179 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "name": "ff0d85d2327a27c0b845",
+  "position": {
+    "x": 960,
+    "y": 296.17021276595744,
+    "z": 5000,
+    "height": 526.68693009118545,
+    "width": 917.68996960486322,
+    "tabOrder": 5000
+  },
+  "visual": {
+    "visualType": "clusteredColumnChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Loai"
+                    }
+                  },
+                  "Property": "Loai"
+                }
+              },
+              "queryRef": "Loai.Loai",
+              "nativeQueryRef": "Loai",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "gold fact_events"
+                    }
+                  },
+                  "Property": "Fraud Labeled Events"
+                }
+              },
+              "queryRef": "gold fact_events.Fraud Labeled Events",
+              "nativeQueryRef": "Đơn gian lận (nhãn)",
+              "displayName": "Đơn gian lận (nhãn)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "gold fact_events"
+                    }
+                  },
+                  "Property": "Rule Alerts"
+                }
+              },
+              "queryRef": "gold fact_events.Rule Alerts",
+              "nativeQueryRef": "Đối tượng bị cảnh báo",
+              "displayName": "Đối tượng bị cảnh báo"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "gold fact_events"
+                  }
+                },
+                "Property": "Fraud Labeled Events"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Đơn gian lận so với đối tượng bị cảnh báo'"
+                }
+              }
+            },
+            "fontFamily": {
+              "expr": {
+                "Literal": {
+                  "Value": "'''Times New Roman'''"
+                }
+              }
+            },
+            "bold": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "subTitle": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "722890e03754411477a1",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Loai"
+              }
+            },
+            "Property": "Loai"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "898eca701cb356faa8f1",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "gold fact_events"
+              }
+            },
+            "Property": "Fraud Labeled Events"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "7a12fb0775e58df9bbf6",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "gold fact_events"
+              }
+            },
+            "Property": "Rule Alerts"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
+  }
+}

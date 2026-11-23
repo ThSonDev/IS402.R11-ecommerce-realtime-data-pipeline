@@ -1,0 +1,132 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "name": "091fb0f912ae1e9521ba",
+  "position": {
+    "x": 90.455927051671736,
+    "y": 296.17021276595744,
+    "z": 4000,
+    "height": 526.68693009118545,
+    "width": 838.90577507598778,
+    "tabOrder": 4000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "alerts"
+                    }
+                  },
+                  "Property": "alert_time"
+                }
+              },
+              "queryRef": "alerts.alert_time",
+              "nativeQueryRef": "alert_time"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "alerts"
+                    }
+                  },
+                  "Property": "rule_name"
+                }
+              },
+              "queryRef": "alerts.rule_name",
+              "nativeQueryRef": "rule_name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "alerts"
+                    }
+                  },
+                  "Property": "entity_id"
+                }
+              },
+              "queryRef": "alerts.entity_id",
+              "nativeQueryRef": "entity_id"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "alerts"
+                    }
+                  },
+                  "Property": "metric_value"
+                }
+              },
+              "queryRef": "Sum(alerts.metric_value)",
+              "nativeQueryRef": "metric_value"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "isDefaultSort": true
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Danh sách cảnh báo'"
+                }
+              }
+            },
+            "fontFamily": {
+              "expr": {
+                "Literal": {
+                  "Value": "'''Times New Roman'''"
+                }
+              }
+            },
+            "bold": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "subTitle": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

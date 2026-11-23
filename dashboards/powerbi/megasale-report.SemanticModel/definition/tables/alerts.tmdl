@@ -1,0 +1,87 @@
+table alerts
+	lineageTag: ba44388f-03b7-4e04-949b-f3c95536cd4c
+
+	measure 'Alerts Count' = COUNTROWS(alerts)
+		formatString: 0
+		lineageTag: 540beef7-1b59-4c8f-843d-281b6576feb0
+
+	column alert_time
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: d81c3fce-1ac5-466a-be57-8935a4d7c12f
+		summarizeBy: none
+		sourceColumn: alert_time
+
+		annotation SummarizationSetBy = Automatic
+
+	column rule_name
+		dataType: string
+		lineageTag: 8c56c42b-0bc9-4e28-80c2-1fb305637f00
+		summarizeBy: none
+		sourceColumn: rule_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column entity_type
+		dataType: string
+		lineageTag: 7ce7fc11-7275-4fa1-b1d1-9079d4c337c7
+		summarizeBy: none
+		sourceColumn: entity_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column entity_id
+		dataType: string
+		lineageTag: 24f54901-3805-4348-bca0-e9ec479002ac
+		summarizeBy: none
+		sourceColumn: entity_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column metric_name
+		dataType: string
+		lineageTag: 0a326739-8be7-4d80-90fa-3370189dedc2
+		summarizeBy: none
+		sourceColumn: metric_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column metric_value
+		dataType: double
+		lineageTag: 160b3856-edff-40e8-b53f-f6e7e4f6affd
+		summarizeBy: sum
+		sourceColumn: metric_value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column threshold
+		dataType: double
+		lineageTag: 719130d8-21ad-4b94-b4d0-49c9044186df
+		summarizeBy: sum
+		sourceColumn: threshold
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column event_id
+		dataType: string
+		lineageTag: 56124c2c-ed74-449e-a222-7066c1b83338
+		summarizeBy: none
+		sourceColumn: event_id
+
+		annotation SummarizationSetBy = Automatic
+
+	partition alerts = m
+		mode: import
+		source =
+				let
+				  Source = Sql.Database("sql-megasale-dev.database.windows.net", "sqldb-megasale-dev"),
+				  #"Navigation 1" = Source{[Schema = "dbo", Item = "alerts"]}[Data]
+				in
+				  #"Navigation 1"
+
+	annotation PBI_ResultType = Table
+

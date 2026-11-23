@@ -1,0 +1,28 @@
+table 'gold dim_channel'
+	lineageTag: 6182f42c-7920-4cab-9e33-23c6be83cb89
+
+	column channel_key
+		dataType: string
+		lineageTag: 1147cdb9-40c4-4389-ba28-1f7c744ff6c3
+		summarizeBy: none
+		sourceColumn: channel_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column channel
+		dataType: string
+		lineageTag: a4e21cf6-3f4d-467c-8fe0-047737d1a184
+		summarizeBy: none
+		sourceColumn: channel
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'gold dim_channel' = m
+		mode: import
+		source =
+				let
+				  Source = Sql.Database("synw-megasale-dev-ondemand.sql.azuresynapse.net", "megasale_warehouse"),
+				  #"Navigation 1" = Source{[Schema = "gold", Item = "dim_channel"]}[Data]
+				in
+				  #"Navigation 1"
+

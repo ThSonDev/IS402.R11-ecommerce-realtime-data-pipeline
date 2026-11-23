@@ -7,17 +7,20 @@ model Model
 		legacyRedirects
 		returnErrorValuesAsNull
 
-annotation __PBI_TimeIntelligenceEnabled = 1
+annotation __PBI_TimeIntelligenceEnabled = 0
 
-annotation PBI_QueryOrder = ["events_1day"]
+annotation PBI_QueryOrder = ["gold dim_channel","gold dim_date","gold dim_payment","gold dim_product","gold dim_province","gold fact_events","alerts"]
 
 annotation PBI_ProTooling = ["DevMode"]
 
-ref table events_1day
-ref table DateTableTemplate_80886eac-5e2b-4948-92c4-929f42615caf
-ref table LocalDateTable_47091b6a-237d-46f0-a7a1-be8a53e9919e
-ref table LocalDateTable_3981b20b-b401-4e44-a742-8acdb549f317
-ref table LocalDateTable_c475850f-8b1d-474f-89f3-0961f7003f27
+ref table 'gold dim_channel'
+ref table 'gold dim_date'
+ref table 'gold dim_payment'
+ref table 'gold dim_product'
+ref table 'gold dim_province'
+ref table 'gold fact_events'
+ref table alerts
+ref table Loai
 
 ref cultureInfo en-US
 
