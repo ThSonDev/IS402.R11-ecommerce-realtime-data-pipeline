@@ -19,7 +19,7 @@ Lưu report dưới dạng **PBIP** (Power BI Project, thư mục file text, dif
 | 1. Tổng quan | GMV, số đơn, AOV, tỷ lệ chuyển đổi, GMV theo thời gian và theo sàn |
 | 2. Sản phẩm và danh mục | Cơ cấu GMV theo danh mục (bấm xuống cấp 2), top 10 brand, top 10 sản phẩm |
 | 3. Sàn và tỉnh | Bản đồ GMV theo tỉnh, bảng GMV theo sàn và miền |
-| 4. Gian lận và sự cố | Đơn gian lận, số cảnh báo của hệ thống, so sánh gian lận thực tế với cảnh báo theo loại |
+| 4. Gian lận và sự cố | Đơn gian lận, số cảnh báo, bảng danh sách cảnh báo, so sánh đơn gian lận (nhãn) với đối tượng bị cảnh báo theo loại |
 
 Có nút chuyển giữa 4 trang. Bộ lọc thời gian, sàn, danh mục dùng chung giữa các trang.
 

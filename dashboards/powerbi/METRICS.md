@@ -39,6 +39,7 @@ Sessions Purchased = CALCULATE(DISTINCTCOUNT(fact_events[session_id]), fact_even
 Conversion Rate = DIVIDE([Sessions Purchased], [Sessions Viewed])
 Late Events = CALCULATE(COUNTROWS(fact_events), fact_events[is_late] = TRUE())
 Alerts Count = COUNTROWS(alerts)
+Rule Alerts = CALCULATE(DISTINCTCOUNT(alerts[entity_id]), alerts[rule_name] = SELECTEDVALUE(Loai[Loai]))
 ```
 
 ## 3. Bốn trang báo cáo
@@ -47,7 +48,7 @@ Tên trang và bộ lọc theo `plan/Tuan.md`. Các biểu đồ cụ thể là 
 
 ### Trang 1. Tổng quan
 - Thẻ số: GMV, số đơn, AOV, tỷ lệ chuyển đổi.
-- Biểu đồ đường: GMV và số đơn theo thời gian (`dim_date`).
+- Biểu đồ cột: GMV và số đơn theo ngày (`dim_date.calendar_date`).
 - Biểu đồ cột: GMV theo sàn (`dim_channel`).
 - Bộ lọc: thời gian, sàn, danh mục.
 
@@ -62,9 +63,9 @@ Tên trang và bộ lọc theo `plan/Tuan.md`. Các biểu đồ cụ thể là 
 - Bộ lọc: thời gian, sàn.
 
 ### Trang 4. Gian lận và sự cố
-- Số đơn bị gắn cờ gian lận và tỷ lệ theo thời gian (`is_fraud`).
-- Thẻ số: số cảnh báo phát hiện (đếm dòng `dbo.alerts`).
-- Biểu đồ so sánh theo loại (`bot`, `multi_account`, `price_glitch`, `payment_outage`), hai cột cạnh nhau: gian lận thực tế (`is_fraud` theo `scenario` từ `fact_events`) và hệ thống phát hiện (`dbo.alerts` theo `rule_name`). Cho thấy hệ thống phát hiện được bao nhiêu so với gian lận thực tế. `alerts` không có `order_id` nên so số lượng theo loại, không so từng đơn.
+- Thẻ số: số đơn gắn cờ gian lận, tỷ lệ đơn gian lận (`is_fraud`), số cảnh báo phát hiện (đếm dòng `dbo.alerts`), số event đến trễ.
+- Bảng danh sách cảnh báo từ `dbo.alerts`: `alert_time`, `rule_name`, `entity_id`, `metric_value`.
+- Biểu đồ so sánh theo loại (`bot`, `multi_account`, `price_glitch`, `payment_outage`), hai cột cạnh nhau: "Đơn gian lận (nhãn)" (`is_fraud` theo `scenario` từ `fact_events`) và "Đối tượng bị cảnh báo" (số `entity_id` khác nhau trong `dbo.alerts` theo `rule_name`). `alerts` không có `order_id` nên so số lượng theo loại, không so từng đơn.
 - Số event đến trễ (`is_late`).
 - Lưu ý: `is_fraud` và `scenario` là nhãn đúng (ground truth) do producer tạo ra để chấm điểm, không phải kết quả của 4 luật. `payment_outage` không gắn nhãn trên từng event (chỉ có khoảng thời gian), nên cột gian lận thực tế của loại này để trống; trang có ghi chú điều này.
 

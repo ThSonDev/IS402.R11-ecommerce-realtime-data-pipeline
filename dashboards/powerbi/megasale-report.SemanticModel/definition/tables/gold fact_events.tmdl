@@ -41,7 +41,7 @@ table 'gold fact_events'
 		formatString: 0
 		lineageTag: 9dac1dac-821a-4af9-bde2-14f79a8e51bc
 
-	measure 'Rule Alerts' = CALCULATE(COUNTROWS(alerts), alerts[rule_name] = SELECTEDVALUE(Loai[Loai]))
+	measure 'Rule Alerts' = CALCULATE(DISTINCTCOUNT(alerts[entity_id]), alerts[rule_name] = SELECTEDVALUE(Loai[Loai]))
 		formatString: 0
 		lineageTag: 19e6dc92-38ca-4c4c-b290-a64d6391892f
 

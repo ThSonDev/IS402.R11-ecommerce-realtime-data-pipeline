@@ -10,63 +10,71 @@
     "tabOrder": 4000
   },
   "visual": {
-    "visualType": "clusteredColumnChart",
+    "visualType": "tableEx",
     "query": {
       "queryState": {
-        "Category": {
+        "Values": {
           "projections": [
             {
               "field": {
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "gold fact_events"
+                      "Entity": "alerts"
                     }
                   },
-                  "Property": "Event Minute"
+                  "Property": "alert_time"
                 }
               },
-              "queryRef": "gold fact_events.Event Minute",
-              "nativeQueryRef": "Event Minute",
-              "active": true
-            }
-          ]
-        },
-        "Y": {
-          "projections": [
+              "queryRef": "alerts.alert_time",
+              "nativeQueryRef": "alert_time"
+            },
             {
               "field": {
-                "Measure": {
+                "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "gold fact_events"
+                      "Entity": "alerts"
                     }
                   },
-                  "Property": "Fraud Orders"
+                  "Property": "rule_name"
                 }
               },
-              "queryRef": "gold fact_events.Fraud Orders",
-              "nativeQueryRef": "Fraud Orders"
+              "queryRef": "alerts.rule_name",
+              "nativeQueryRef": "rule_name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "alerts"
+                    }
+                  },
+                  "Property": "entity_id"
+                }
+              },
+              "queryRef": "alerts.entity_id",
+              "nativeQueryRef": "entity_id"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "alerts"
+                    }
+                  },
+                  "Property": "metric_value"
+                }
+              },
+              "queryRef": "Sum(alerts.metric_value)",
+              "nativeQueryRef": "metric_value"
             }
           ]
         }
       },
       "sortDefinition": {
-        "sort": [
-          {
-            "field": {
-              "Column": {
-                "Expression": {
-                  "SourceRef": {
-                    "Entity": "gold fact_events"
-                  }
-                },
-                "Property": "Event Minute"
-              }
-            },
-            "direction": "Ascending"
-          }
-        ],
         "isDefaultSort": true
       }
     },
@@ -77,7 +85,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Đơn gian lận theo thời gian'"
+                  "Value": "'Danh sách cảnh báo'"
                 }
               }
             },
@@ -89,6 +97,13 @@
               }
             },
             "bold": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "show": {
               "expr": {
                 "Literal": {
                   "Value": "true"

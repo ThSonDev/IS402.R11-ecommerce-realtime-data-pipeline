@@ -46,8 +46,8 @@
                 }
               },
               "queryRef": "gold fact_events.Fraud Labeled Events",
-              "nativeQueryRef": "Gian lận thực tế",
-              "displayName": "Gian lận thực tế"
+              "nativeQueryRef": "Đơn gian lận (nhãn)",
+              "displayName": "Đơn gian lận (nhãn)"
             },
             {
               "field": {
@@ -61,8 +61,8 @@
                 }
               },
               "queryRef": "gold fact_events.Rule Alerts",
-              "nativeQueryRef": "Hệ thống phát hiện",
-              "displayName": "Hệ thống phát hiện"
+              "nativeQueryRef": "Đối tượng bị cảnh báo",
+              "displayName": "Đối tượng bị cảnh báo"
             }
           ]
         }
@@ -93,7 +93,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Gian lận thực tế so với hệ thống phát hiện'"
+                  "Value": "'Đơn gian lận so với đối tượng bị cảnh báo'"
                 }
               }
             },
@@ -129,5 +129,51 @@
       ]
     },
     "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "722890e03754411477a1",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Loai"
+              }
+            },
+            "Property": "Loai"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "898eca701cb356faa8f1",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "gold fact_events"
+              }
+            },
+            "Property": "Fraud Labeled Events"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "7a12fb0775e58df9bbf6",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "gold fact_events"
+              }
+            },
+            "Property": "Rule Alerts"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
   }
 }

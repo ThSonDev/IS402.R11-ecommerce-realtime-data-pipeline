@@ -5208,7 +5208,7 @@ cultureInfo en-US
 			          }
 			        },
 			        {
-			          "Gian lận thực tế": {
+			          "Đơn gian lận (nhãn)": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",
@@ -5320,7 +5320,7 @@ cultureInfo en-US
 			          }
 			        },
 			        {
-			          "Hệ thống phát hiện": {
+			          "Đối tượng bị cảnh báo": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",
